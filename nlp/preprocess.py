@@ -45,7 +45,7 @@ class NLPreprocessor:
                     if not token.is_punct:
                         words.append(token.lower_)
                 if len(words) > ): sents.append(words)
-            self._save_sents(sents, doc.get("asin"), doc.get("_id"))
+            self._save_sents(sents, doc.get("sku"), doc.get("_id"))
     
     def _save_sents(self, sent_list, asin, parent_id):
         """
@@ -58,13 +58,12 @@ class NLPreprocessor:
         """
         sent_list = self._tag_sents(sent_list)
         record = {
-                "asin": asin, 
+                "sku": sku, 
                 "data": {
                         "_parent": parent_id, 
                         "tokens": sent_list, 
                 }
         }
-
         # Create/load sentence collection
         sentences = db.sentences 
         sentences.update(record, record, {"upsert":true})
