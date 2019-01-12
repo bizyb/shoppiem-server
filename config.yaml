@@ -4,3 +4,4 @@
 host: localhost
 port: 27017
 db_name: sunbeamdb
+sent_db: sentencedb
