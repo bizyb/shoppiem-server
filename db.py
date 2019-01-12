@@ -18,4 +18,3 @@ def init_db(db_name):
     return client[db_name]
 
 
-

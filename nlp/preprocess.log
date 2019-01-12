@@ -1,0 +1,23 @@
+2019-01-11 23:43:36,746 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-11 23:43:48,275 INFO: Finished loading NLP model
+2019-01-11 23:44:17,495 INFO: Tokenizing documents into sentences
+2019-01-11 23:44:31,607 INFO: Tokenizing documents into sentences
+2019-01-11 23:44:38,567 INFO: Tokenizing documents into sentences
+2019-01-11 23:45:23,893 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-11 23:45:23,893 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-11 23:45:35,367 INFO: Finished loading NLP model
+2019-01-11 23:45:35,367 INFO: Finished loading NLP model
+2019-01-11 23:45:41,375 INFO: Tokenizing documents into sentences
+2019-01-11 23:45:41,375 INFO: Tokenizing documents into sentences
+2019-01-11 23:48:02,467 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-11 23:48:02,467 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-11 23:48:02,467 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-11 23:48:12,368 INFO: Finished loading NLP model
+2019-01-11 23:48:12,368 INFO: Finished loading NLP model
+2019-01-11 23:48:12,368 INFO: Finished loading NLP model
+2019-01-11 23:48:15,439 INFO: Tokenizing documents into sentences
+2019-01-11 23:48:15,439 INFO: Tokenizing documents into sentences
+2019-01-11 23:48:15,439 INFO: Tokenizing documents into sentences
+2019-01-11 23:48:33,233 INFO: Finished document tokenization
+2019-01-11 23:48:33,233 INFO: Finished document tokenization
+2019-01-11 23:48:33,233 INFO: Finished document tokenization
