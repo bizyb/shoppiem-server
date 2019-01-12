@@ -20,14 +20,14 @@ merchants:
 # Doc2Vec parameters/hyperparameters
 #-------------------------------------------------
 doc2vec:
-  vector_size: 1
-  epochs: 1
-  min_count: 20
+  vector_size: 100
+  epochs: 20
+  min_count: 50
   dm: 0
   negative: 5
   alpha: 0.025
   min_alpha: 0.001
   path: ml/models
   inference:
-    topn: 5
+    topn: 10
     steps: 100000

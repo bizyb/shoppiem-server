@@ -1,6 +1,7 @@
 from __base__ import Doc2VecBase
 import db as DB
 from gensim.models.doc2vec import Doc2Vec
+from gensim.summarization.summarizer import summarize
 from services import logger
 import yaml
 logger = logger.Loggers(__name__).get_logger()
@@ -41,7 +42,7 @@ class Inference(Doc2VecBase):
         query_tokens = query.split()
         inference = self.d2v_model.infer_vector(query_tokens,steps=steps)
         sims = self.d2v_model.docvecs.most_similar([inference], topn=topn)
-        return map(lambda x: self._lookup(x[0]), sims)
+        return self._summarize(map(lambda x: self._lookup(x[0]), sims))
             
     def _lookup(self, tag):
         """
@@ -58,4 +59,21 @@ class Inference(Doc2VecBase):
             # this should never happen
             logger.error("Failed to do reverse sentence lookup")
         return sentence
-      
+    
+    def _summarize(self, sent_list):
+        """
+        Summarize the result using gensim's summarizer.
+
+        :param sent_list: a list of sentences
+        :return summary: a summarize sentence
+        """
+        s = []
+        for sent in sent_list:
+            sent = sent.split(" ")
+            sent[0] = sent[0].capitalize()
+            sent = " ".join(sent)
+            sent += "."
+            s.append(sent)
+        
+        s = " ".join(s)
+        return summarize(s)
