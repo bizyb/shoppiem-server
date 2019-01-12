@@ -16,11 +16,15 @@ class Document2Vector(Doc2VecBase):
     '''
     Performs doc2vec modeling using gensim's doc2vec implementation.
     '''
-    def __init__(self, data, sku):
-        self.data = data
+    def __init__(self, sku):
         path = config.get("doc2vec").get("path") 
-        super(Document2Vector, self).__init__(sku, path) 
-        
+        super(Document2Vector, self).__init__(sku, path)
+        self.data = self._get_data() 
+
+    def _get_data(self):
+        temp_db = DB.init_db(config.get("ingestion_db"))
+        return list(db.sentences.find({"sku": self.sku}))
+
     def _tagged_docs(self):
         '''
         Return the training data as a tuple of sentence-uuid tag pairs.

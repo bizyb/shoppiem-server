@@ -15,20 +15,24 @@ class NLPreprocessor:
     Performs NLP preprocessing using the spaCy NLP library to tokenize 
     reviews into sentences and tag them with UIDs.  
     """
-    def __init__(self, data):
+    def __init__(self, sku):
         """
         Load the pre-trained English NLP model.
 
         :param data: product reviews, a list of dictionaries 
         """
-        self.data = data
+        self.sku = sku
+        self.data = self._get_data()
         self.nlp = None
 
         logger.info('Loading spaCy en_core_web_lg NLP model')
         self.nlp = spacy.load('en_core_web_lg')
         logger.info("Finished loading NLP model")
     
-    
+    def _get_data(self):
+        temp_db = DB.init_db(config.get("ingestion_db"))
+        return list(temp_db.raw.find({"sku": self.sku}))
+
     def tokenize(self):
         """
         Tokenize reviews into sentences and save them to the database.

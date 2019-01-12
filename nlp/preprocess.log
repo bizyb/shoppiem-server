@@ -66,3 +66,5 @@
 2019-01-12 12:05:48,664 INFO: Finished document tokenization
 2019-01-12 12:05:48,664 INFO: Finished document tokenization
 2019-01-12 12:05:48,664 INFO: Finished document tokenization
+2019-01-12 12:46:24,562 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-12 12:46:34,196 INFO: Finished loading NLP model
