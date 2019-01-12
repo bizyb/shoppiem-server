@@ -44,6 +44,7 @@ class NLPreprocessor:
                 for token in s:
                     # tokenize into words and do clean up
                     if not token.is_punct:
+                        #TODO: do not break conjuctions apart
                         words.append(token.lower_)
                 if len(words) > 1: sents.append(words)
             self._save_sents(sents, doc.get("sku"), doc.get("_id"))

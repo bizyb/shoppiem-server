@@ -15,3 +15,16 @@ merchants:
   Amazon: 
     sku: asin
     review_text: reviewText
+
+#-------------------------------------------------
+# Doc2Vec training parameters/hyperparameters
+#-------------------------------------------------
+doc2vec:
+  vector_size: 1
+  epochs: 1
+  min_count: 20
+  dm: 0
+  negative: 5
+  alpha: 0.025
+  min_alpha: 0.001
+  path: ml/models
