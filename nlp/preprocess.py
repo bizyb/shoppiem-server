@@ -65,18 +65,19 @@ class NLPreprocessor:
                 "sku": sku,
                 "_parent": parent_id,
         }
-        record.update(tagged_sents)
-    
         # Create/load sentence collection
-        sentences = db.sentences 
-        sentences.update(record, record, upsert=True)
+        sentences = db.sentences
+        for tag, sent in tagged_sents:
+            record["tag"] = tag 
+            record["sentence"] = sent
+            sentences.update(record, record, upsert=True)
 
     def _tag_sents(self, sent_list):
         """
         Assign a uuid to each sentence.
 
         :param sent_list: A list of sentences (each sentence is in a turn a list of words)
-        :return sent_list: a tag-sentence key-value pair
+        :return sent_list: a list of tag-sentence tuples
         """
-        sent_dict = {str(uuid4()): sent for sent in sent_list}
-        return sent_dict
+        sent_list = [(str(uuid4()),sent) for sent in sent_list]
+        return sent_list

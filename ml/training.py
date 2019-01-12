@@ -3,6 +3,7 @@ from collections import namedtuple
 import db as DB
 from gensim.models.doc2vec import Doc2Vec
 import random
+import re
 from services import logger
 import yaml
 logger = logger.Loggers(__name__).get_logger()
@@ -30,12 +31,29 @@ class Document2Vector(Doc2VecBase):
         TaggedDocuments = namedtuple('TaggedDocuments', 'words tags')
         tagged_docs =[]
         for doc in self.data:
-            sent_list = doc.get("data").get("tokens")
-            for words, tag in sent_list:
+            tags = self._get_sent_tags(doc)
+            for tag in tags:
+                words = doc.get(tag)
                 obj = TaggedDocuments(words=words, tags=[tag])
                 tagged_docs.append(obj)
         return tagged_docs 
     
+    def _get_sent_tags(self, doc):
+        """
+        Get all sentence tags for a given tag with regex pattern matching.
+        In order to allow for a constant reverse sentence lookup, we're using
+        a 'flat' document structure, where UUIDs are used as keys for sentences.
+
+        :param doc: a database record of raw data 
+        :return tags: a list of tags 
+        """
+        pattern = '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
+        tags = []
+        for key in doc.keys():
+            found = re.findall(pattern, key)
+            if found: tags.append(found[0])
+        return tags
+
     def _get_params(self):
         """
         Set doc2vec training parameters.
@@ -80,7 +98,7 @@ class Document2Vector(Doc2VecBase):
         if d2v_model == None:
             logger.info("Training a new model for SKU " + self.sku)
             tagged_docs = self._tagged_docs()
-
+            
             # Set some parameters
             params = self._get_params()
             alpha = config.get("doc2vec").get("alpha")

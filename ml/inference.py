@@ -50,4 +50,5 @@ class Inference(Doc2VecBase):
         :param tag: a unique sentence identifier
         :return sent: the target sentence
         """
-        db.sentences.
+        # db.sentences.
+        pass
