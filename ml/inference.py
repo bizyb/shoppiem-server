@@ -50,6 +50,12 @@ class Inference(Doc2VecBase):
         :param tag: a unique sentence identifier
         :return sent: the target sentence
         """
-        obj = list(db.sentences.find({"tag": tag}))[0]
-        return " ".join(obj.get("sentence"))
+        sentence = "Sorry, could not find any matching result"
+        try:
+            obj = list(db.sentences.find({"tag": tag}))[0]
+            sentence = " ".join(obj.get("sentence"))
+        except Exception:
+            # this should never happen
+            logger.error("Failed to do reverse sentence lookup")
+        return sentence
       
