@@ -1,7 +1,7 @@
+from __base__ import Doc2VecBase
 from collections import namedtuple
 import db as DB
 from gensim.models.doc2vec import Doc2Vec
-# import os
 import random
 from services import logger
 import yaml
@@ -12,15 +12,15 @@ with open('config.yaml') as f:
     config = yaml.safe_load(f)
 db = DB.init_db(config.get("sent_db"))
 
-class Document2Vector:
+class Document2Vector(Doc2VecBase):
     '''
     Performs doc2vec modeling using gensim's doc2vec implementation.
     '''
     def __init__(self, data, sku):
-        self.data = data 
-        self.sku = sku
-        self.path = config.get("doc2vec").get("path")
-		
+        self.data = data
+        path = config.get("doc2vec").get("path") 
+        super(Document2Vector, self).__init__(sku, path) 
+        
     def _tagged_docs(self):
         '''
         Return the training data as a tuple of sentence-uuid tag pairs.
@@ -35,25 +35,6 @@ class Document2Vector:
                 obj = TaggedDocuments(words=words, tags=[tag])
                 tagged_docs.append(obj)
         return tagged_docs 
-
-    def _load_model(self):
-        """
-        Load a trained model if one already exists for a given sku.
-        Otherwise, return None.
-
-        return model: a previously trained model or None
-
-        #TODO: could models belonging to products from different merchants
-        #TODO: have conflicting names due to identical SKUs? How likely is this?
-        """
-        self.path += "/" + self.sku
-        model = None
-        try:
-            model = Doc2Vec.load(self.path)
-            logger.info("Model successfully loaded")
-        except IOError:
-            logger.warn("Model not found")
-        return model
     
     def _get_params(self):
         """

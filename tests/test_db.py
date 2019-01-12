@@ -1,6 +1,8 @@
+import pytest
 from sunbeam import db as DB
 from pymongo import MongoClient
 
+@pytest.mark.skip(reason="Already tested")
 def test_db():
     """
     Perform basic API tests on our database. Note that we're not 

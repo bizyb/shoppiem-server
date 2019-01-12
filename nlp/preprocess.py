@@ -59,14 +59,14 @@ class NLPreprocessor:
         :param parent_id: the 'foreign key' for the untokenized review
         :return: None
         """
-        sent_list = self._tag_sents(sent_list)
+    
+        tagged_sents = self._tag_sents(sent_list)
         record = {
-                "sku": sku, 
-                "data": {
-                        "_parent": parent_id, 
-                        "tokens": sent_list, 
-                }
+                "sku": sku,
+                "_parent": parent_id,
         }
+        record.update(tagged_sents)
+    
         # Create/load sentence collection
         sentences = db.sentences 
         sentences.update(record, record, upsert=True)
@@ -76,7 +76,7 @@ class NLPreprocessor:
         Assign a uuid to each sentence.
 
         :param sent_list: A list of sentences (each sentence is in a turn a list of words)
-        :return sent_list: a list of sentence-tag pair
+        :return sent_list: a tag-sentence key-value pair
         """
-        sent_list = [(sent, str(uuid4())) for sent in sent_list]
-        return sent_list
+        sent_dict = {str(uuid4()): sent for sent in sent_list}
+        return sent_dict

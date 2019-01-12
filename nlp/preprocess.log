@@ -21,3 +21,25 @@
 2019-01-11 23:48:33,233 INFO: Finished document tokenization
 2019-01-11 23:48:33,233 INFO: Finished document tokenization
 2019-01-11 23:48:33,233 INFO: Finished document tokenization
+2019-01-12 11:19:30,599 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-12 11:19:41,757 INFO: Finished loading NLP model
+2019-01-12 11:20:08,918 INFO: Tokenizing documents into sentences
+2019-01-12 11:20:28,032 INFO: Finished document tokenization
+2019-01-12 11:22:05,802 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-12 11:22:05,802 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-12 11:22:15,641 INFO: Finished loading NLP model
+2019-01-12 11:22:15,641 INFO: Finished loading NLP model
+2019-01-12 11:22:22,298 INFO: Tokenizing documents into sentences
+2019-01-12 11:22:22,298 INFO: Tokenizing documents into sentences
+2019-01-12 11:24:13,775 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-12 11:24:13,775 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-12 11:24:13,775 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-12 11:24:23,397 INFO: Finished loading NLP model
+2019-01-12 11:24:23,397 INFO: Finished loading NLP model
+2019-01-12 11:24:23,397 INFO: Finished loading NLP model
+2019-01-12 11:24:25,478 INFO: Tokenizing documents into sentences
+2019-01-12 11:24:25,478 INFO: Tokenizing documents into sentences
+2019-01-12 11:24:25,478 INFO: Tokenizing documents into sentences
+2019-01-12 11:24:45,599 INFO: Finished document tokenization
+2019-01-12 11:24:45,599 INFO: Finished document tokenization
+2019-01-12 11:24:45,599 INFO: Finished document tokenization
