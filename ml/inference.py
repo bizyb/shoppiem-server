@@ -41,8 +41,8 @@ class Inference(Doc2VecBase):
         query_tokens = query.split()
         inference = self.d2v_model.infer_vector(query_tokens,steps=steps)
         sims = self.d2v_model.docvecs.most_similar([inference], topn=topn)
-        return sims
-    
+        return map(lambda x: self._lookup(x[0]), sims)
+            
     def _lookup(self, tag):
         """
         Perform a reverse sentence lookup given its tag.
@@ -50,5 +50,6 @@ class Inference(Doc2VecBase):
         :param tag: a unique sentence identifier
         :return sent: the target sentence
         """
-        # db.sentences.
-        pass
+        obj = list(db.sentences.find({"tag": tag}))[0]
+        return " ".join(obj.get("sentence"))
+      
