@@ -1,5 +1,7 @@
+from concurrent.futures import ThreadPoolExecutor
 import db as DB
 from services import logger
+import scraper
 import yaml
 logger = logger.Loggers(__name__).get_logger()
 
@@ -60,7 +62,6 @@ def _build_urls(source, sku, page_count):
     return urls
 
 def add_to_queue(source, sku, page_count):
-
     """
     Generate review URLs and add them to the queue.
 
@@ -68,7 +69,39 @@ def add_to_queue(source, sku, page_count):
     :param sku: product sku
     :param page_count: number of pages with reviews
     """ 
-
     urls = _build_urls(source, sku, page_count)
+
+    q_db = DB.init_db(config.get("queue_db"))
+    for url in urls:
+        record = {
+                "url": url,
+                "sku": sku,
+                "done": False
+        }
+        q_db.queue.update(record, record, upsert=True)
+    
+
+def scrape(sku):
+    """
+    Run the scraper until the queue is empty.
+
+    #TODO: if something is funky, disable executor call. It suppresses
+    exceptions.
+    """
+    thread_count = config.get("scraper").get("thread_count")
+    q_db = DB.init_db(config.get("queue_db"))
+    urls = q_db.queue.find({"sku": sku})
+    with ThreadPoolExecutor(max_workers=thread_count) as executor:
+        for url in urls:
+            url = url.get("url")
+            sc = scraper.Scraper()
+            # sc.get_request(url, init=False)
+            executor.submit(sc.get_request, url, init=False)
+
+
+
+
+
+
 
 

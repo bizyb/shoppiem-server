@@ -76,7 +76,7 @@ def start(url):
         _set_status("Adding to queue", sku)
         sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
         _set_status("Gathering data", sku)
-        sc_helper.scrape()
+        sc_helper.scrape(sku)
 
         _set_status("Analyzing language", sku)
         # logger.info("Starting NLP preprocessing")

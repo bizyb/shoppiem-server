@@ -7,6 +7,7 @@ db_name: sunbeamdb
 sent_db: test_sentencedb
 ingestion_db: test_rawfeeddb
 jobs_db: test_jobsdb
+queue_db: queuedb
 # user_agent_db: test_useragentsdb
 status_db: statusdb
 

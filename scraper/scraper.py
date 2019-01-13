@@ -39,10 +39,10 @@ class Scraper(object):
         '''
         sm = settings.get("sleep_min")
         smx = settings.get("sleep_max")
-        num = random.randint(settings.get(sm, smx))
+        num = random.randint(sm, smx)
         return num
 
-    def set_headers(self):
+    def _set_headers(self):
         '''
         Set the response header with a random user agent.
 
@@ -60,30 +60,34 @@ class Scraper(object):
         :param init: initial request for product detail
         :return response: an html response
         ''' 
-        with open("response.html", "r") as f:
-            response = f.read()
-        return response
-        
+        response = None
+        if init:
+            with open("response.html", "r") as f:
+                response = f.read()
+            return response
+
         params = {
-            'headers': self.set_headers(),
+            'headers': self._set_headers(),
             'timeout': settings.get("http_timeout"),
         }
         proxies = {
             'http': settings.get("proxies").get("http"),
             'https': settings.get("proxies").get("https"),
         }
-        response = None
+        
         try:
             if not init:
                 t = self._get_duration()
-                logging.info('Throttling by {} second/s').format(t)
+                # t = 0 # TODO: for debugging
+                logger.info('Throttling by {} second/s'.format(t))
                 time.sleep(t)
             response = requests.get(url, proxies=proxies, **params)
             msg = 'New response: status_code={} url={}'
             logger.info(msg.format(response.status_code, response.url))
         except Exception as e:
-            msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], URL)
-            self.logger.exception(msg)
+            msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], url)
+            logger.exception(msg)
+        return response
 
             
 

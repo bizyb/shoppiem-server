@@ -28,7 +28,6 @@ class Parser(object):
         return _parser(soup)
 
     def _amazon_detail_parser(self, soup):
-        print "selectors: ", selectors.get(self.source)
         rcount_selector = selectors.get(self.source).get("review_count")
         name_selector = selectors.get(self.source).get("product_name")
 
