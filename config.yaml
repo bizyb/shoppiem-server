@@ -45,7 +45,6 @@ scraper:
   http_timeout: 3
   sleep_max: 1
   sleep_min: 0
-  user_agent: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
   http_codes:
     success: 200
     fail: 0
@@ -55,9 +54,4 @@ scraper:
 
 misc:
   min_review_count: 50
-#-------------------------------------------------
-# Status messages
-#-------------------------------------------------
-# status:
-#   ready: Ready
 
