@@ -1,5 +1,5 @@
 import db as DB
-import ingestion
+# import ingestion
 from ml import training, inference
 from nlp import preprocess
 from parser import parser
@@ -68,13 +68,13 @@ def start(url):
     _set_status("Gathering item details", sku)
     parsed = _get_product_details(decoded[0], decoded[-1])
     prod_name, review_count, page_count = parsed
-    
+
     if review_count <= config.get("misc").get("min_review_count"):
         return "Not enough data"
 
-    if not sc_helper._in_inventory(sku):
+    if not sc_helper.in_inventory(sku):
         _set_status("Adding to queue", sku)
-        sc_helper.add_to_queue(decoded, review_count)
+        sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
         _set_status("Gathering data", sku)
         sc_helper.scrape()
 
