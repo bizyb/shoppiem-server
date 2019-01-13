@@ -1,3 +1,4 @@
 amazon:
   review_count: "#acrCustomerReviewText"
   product_name: "#productTitle"
+  review_text: "a-size-base review-text"

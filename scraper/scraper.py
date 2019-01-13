@@ -1,4 +1,5 @@
 import db as DB
+from parser import parser
 import random
 import requests
 from services import logger
@@ -20,7 +21,10 @@ class Scraper(object):
     Scrapes customer reviews and product detail page from a merchant site.
     """
 
-    def __init__(self):
+    def __init__(self, sku=None, prod_name=None, source=None):
+        self.sku = sku 
+        self.prod_name = prod_name
+        self.source = source.lower()
         self.user_agents = self._get_user_agents()
         
     def _get_user_agents(self):
@@ -61,10 +65,14 @@ class Scraper(object):
         :return response: an html response
         ''' 
         response = None
+
+        #------------------------------
+        #TODO: FOR DEBUGGING
         if init:
             with open("response.html", "r") as f:
                 response = f.read()
             return response
+        #------------------------------
 
         params = {
             'headers': self._set_headers(),
@@ -87,6 +95,13 @@ class Scraper(object):
         except Exception as e:
             msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], url)
             logger.exception(msg)
+        
+        if not init:
+            # parse the reviews and save them to the database
+
+            pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
+            pr.parse(response)
+
         return response
 
             

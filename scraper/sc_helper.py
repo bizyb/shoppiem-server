@@ -27,7 +27,8 @@ def in_inventory(sku):
     """
     is_in_queue = False
     is_ready = False
-    queue = list(db.sku_queue.find({"sku": sku}))
+    q_db = DB.init_db(config.get("queue_db"))
+    queue = list(q_db.sku_queue.find({"sku": sku}))
     if len(queue) > 0 : is_in_queue = True 
 
     db_job_status = DB.init_db(config.get("jobs_db"))
@@ -80,8 +81,7 @@ def add_to_queue(source, sku, page_count):
         }
         q_db.queue.update(record, record, upsert=True)
     
-
-def scrape(sku):
+def scrape(sku, prod_name, source):
     """
     Run the scraper until the queue is empty.
 
@@ -94,9 +94,11 @@ def scrape(sku):
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
         for url in urls:
             url = url.get("url")
-            sc = scraper.Scraper()
+            sc = scraper.Scraper(sku, prod_name, source)
             # sc.get_request(url, init=False)
             executor.submit(sc.get_request, url, init=False)
+
+
 
 
 
