@@ -6,6 +6,10 @@ port: 27017
 db_name: sunbeamdb
 sent_db: test_sentencedb
 ingestion_db: test_rawfeeddb
+jobs_db: test_jobsdb
+# user_agent_db: test_useragentsdb
+status_db: statusdb
+
 
 
 #-------------------------------------------------
@@ -31,3 +35,28 @@ doc2vec:
   inference:
     topn: 10
     steps: 100000
+
+#-------------------------------------------------
+# Scraper parameters
+#-------------------------------------------------
+scraper:
+  thread_count: 40
+  http_timeout: 3
+  sleep_max: 1
+  sleep_min: 0
+  user_agent: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+  http_codes:
+    success: 200
+    fail: 0
+  proxies:
+    http: http://5.79.73.131:13010
+    https: http://5.79.73.131:13010 
+
+misc:
+  min_review_count: 50
+#-------------------------------------------------
+# Status messages
+#-------------------------------------------------
+# status:
+#   ready: Ready
+

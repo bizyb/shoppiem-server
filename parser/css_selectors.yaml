@@ -1,0 +1,3 @@
+amazon:
+  review_count: "#acrCustomerReviewText"
+  product_name: "#productTitle"
