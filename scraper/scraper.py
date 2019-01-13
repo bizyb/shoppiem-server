@@ -65,15 +65,6 @@ class Scraper(object):
         :return response: an html response
         ''' 
         response = None
-
-        # #------------------------------
-        # #TODO: FOR DEBUGGING
-        # if init:
-        #     with open("response.html", "r") as f:
-        #         response = f.read()
-        #     return response
-        # #------------------------------
-
         params = {
             'headers': self._set_headers(),
             'timeout': settings.get("http_timeout"),
@@ -86,9 +77,9 @@ class Scraper(object):
         try:
             if not init:
                 t = self._get_duration()
-                # t = 0 # TODO: for debugging
                 logger.info('Throttling by {} second/s'.format(t))
                 time.sleep(t)
+
             response = requests.get(url, proxies=proxies, **params)
             msg = 'New response: status_code={} url={}'
             logger.info(msg.format(response.status_code, response.url))
@@ -96,16 +87,14 @@ class Scraper(object):
             msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], url)
             logger.exception(msg)
         
-        if not init:
+        if not init and response != None:
             # parse the reviews and save them to the database
-
-            # #TODO for debugging
-            # with open("reviews.html", "r") as f:
-            #     response = f.read()
+            
             pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
             pr.parse(response.text)
 
-        return response.text
+        if response: return response.text
+        
 
             
 

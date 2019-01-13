@@ -19,13 +19,11 @@ class Parser(object):
         self.source = source.lower()
     
     def parse(self, response, init=False):
-        # response = response.content
         if init:
             return self._parse_detail(response)
         self._parse_reviews(response)
     
     def _parse_detail(self, response):
-    
         soup = bsoup(response, 'lxml')
         _parser = "_" + self.source.lower() + "_detail_parser"
         _parser = getattr(self, _parser)
@@ -65,7 +63,7 @@ class Parser(object):
 
         # get product name
         name = soup.select(name_selector)[0].text.strip()
-
+        
         return (name, review_count, page_count)
     
     def _get_page_count(self, count, divisor=1):

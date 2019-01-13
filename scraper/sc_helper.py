@@ -95,8 +95,8 @@ def scrape(sku, prod_name, source):
         for url in urls[:1]:
             url = url.get("url")
             sc = scraper.Scraper(sku, prod_name, source)
-            # sc.get_request(url, init=False)
-            executor.submit(sc.get_request, url, init=False)
+            sc.get_request(url, init=False)
+            # executor.submit(sc.get_request, url, init=False)
 
 
 

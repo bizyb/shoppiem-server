@@ -77,17 +77,16 @@ def start(url):
         sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
         _set_status("Gathering data", sku)
         sc_helper.scrape(sku, prod_name, decoded[0])
-        # sc_helper.parse(sku)
-
+       
         _set_status("Analyzing language", sku)
-        # logger.info("Starting NLP preprocessing")
-        # # preprocess.NLPreprocessor(sku).tokenize()
-        # logger.info("Finished NLP preprocessing")
+        logger.info("Starting NLP preprocessing")
+        preprocess.NLPreprocessor(sku).tokenize()
+        logger.info("Finished NLP preprocessing")
 
         _set_status("Building knowledge base", sku)
-        # logger.info("Starting model trianing")
-        # d2v = training.Document2Vector(sku).train()
-        # logger.info("Finished model training")
+        logger.info("Starting model trianing")
+        d2v = training.Document2Vector(sku).train()
+        logger.info("Finished model training")
 
     return "Ready"
 
