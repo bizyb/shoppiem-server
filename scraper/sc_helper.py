@@ -4,8 +4,11 @@ import yaml
 logger = logger.Loggers(__name__).get_logger()
 
 config = None
+base_urls = None
 with open('config.yaml') as f:
     config = yaml.safe_load(f)
+with open('scraper/base_urls.yaml') as f:
+    base_urls = yaml.safe_load(f)
 db = DB.init_db(config.get("status_db"))
 
  # logger.info("Starting data ingestion")
@@ -30,17 +33,42 @@ def in_inventory(sku):
     if len(res) > 0 : 
         if res[0].get("msg") == "Ready":
             is_ready = True
-    
     return is_ready or is_in_queue
 
+def _build_urls(source, sku, page_count):
+    """
+    Generate review page urls using the page_count and merchant-specific
+    url attributes.
+
+    :param source: merchant
+    :param sku: product sku
+    :param page_count: number of pages of reviews
+    :return urls: a list of the generated urls
+    """
+    urls = []
+    base, landing, prefix, suffix = None, None, None, None
+    if source.lower() == "amazon":
+        base = base_urls.get("amazon")
+        landing = base + 'product-reviews/' + sku 
+        prefix = landing + '?pageNumber='
+        suffix = '&reviewerType=all_reviews'
+    
+    for i in range(page_count):
+        review_url = prefix + str(i+1)
+        if suffix != None: review_url += suffix
+        urls.append(review_url)
+    return urls
+
 def add_to_queue(source, sku, page_count):
+
     """
     Generate review URLs and add them to the queue.
 
     :param source: merchant
     :param sku: product sku
-    :param page_count: number pages with reviews
+    :param page_count: number of pages with reviews
     """ 
 
-    
+    urls = _build_urls(source, sku, page_count)
+
 
