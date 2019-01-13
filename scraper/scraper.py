@@ -66,13 +66,13 @@ class Scraper(object):
         ''' 
         response = None
 
-        #------------------------------
-        #TODO: FOR DEBUGGING
-        if init:
-            with open("response.html", "r") as f:
-                response = f.read()
-            return response
-        #------------------------------
+        # #------------------------------
+        # #TODO: FOR DEBUGGING
+        # if init:
+        #     with open("response.html", "r") as f:
+        #         response = f.read()
+        #     return response
+        # #------------------------------
 
         params = {
             'headers': self._set_headers(),
@@ -99,10 +99,13 @@ class Scraper(object):
         if not init:
             # parse the reviews and save them to the database
 
+            # #TODO for debugging
+            # with open("reviews.html", "r") as f:
+            #     response = f.read()
             pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
-            pr.parse(response)
+            pr.parse(response.text)
 
-        return response
+        return response.text
 
             
 

@@ -92,7 +92,7 @@ def scrape(sku, prod_name, source):
     q_db = DB.init_db(config.get("queue_db"))
     urls = q_db.queue.find({"sku": sku})
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
-        for url in urls:
+        for url in urls[:1]:
             url = url.get("url")
             sc = scraper.Scraper(sku, prod_name, source)
             # sc.get_request(url, init=False)

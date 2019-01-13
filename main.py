@@ -49,9 +49,9 @@ def _get_product_details(source, url):
     :param url: canonical product url
     :return number of reviews and product name
     """
-    sc = scraper.Scraper()
+    sc = scraper.Scraper(source=source)
     response = sc.get_request(url)
-    pr = parser.Parser(source)
+    pr = parser.Parser(source=source)
     return pr.parse(response, init=True)
 
 def start(url):

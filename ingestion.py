@@ -14,8 +14,8 @@ def ingest(raw):
 
     :param raw: a dictionary (JSON) containing all reviews
     """
-    keys = config.get("merchants").get(source)
     for record in raw:
         # Create/load raw collection
         raw = db.raw 
         raw.update(record, record, upsert=True)
+        logger.info("Added record to raw feed db")

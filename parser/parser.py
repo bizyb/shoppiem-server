@@ -31,15 +31,15 @@ class Parser(object):
         _parser = getattr(self, _parser)
         return _parser(soup)
     
-    def _parse_reviews(self, response)
+    def _parse_reviews(self, response):
         soup = bsoup(response, 'lxml')
         _parser = "_" + self.source.lower() + "_review_parser"
         _parser = getattr(self, _parser)
         return _parser(soup)
     
     def _amazon_review_parser(self, soup):
-        reviews_list = soup.find_all('div', id=re.compile('customer_review-\w+'))
-        selector = selectors.get(self.source).get("review_text")
+        review_list = soup.find_all('div', id=re.compile('customer_review-\w+'))
+        sel = selectors.get(self.source).get("review_text")
         raw = []
         for review in review_list:
             record = {
