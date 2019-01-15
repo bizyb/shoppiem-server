@@ -1,3 +1,4 @@
+import time
 import db as DB
 # import ingestion
 from ml import training, inference
@@ -59,7 +60,9 @@ def start(url):
     Initiate scraping, parsing, data ingestion, preprocessing, 
     and training. 
     """
-    
+   
+    # time.sleep(10)
+    print "======================received request in main...."
     decoded = _decode_url(url)
     if not decoded:
         return "Unsupported URL"

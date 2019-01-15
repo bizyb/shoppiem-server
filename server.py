@@ -1,15 +1,15 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import main
 app = Flask(__name__)
+CORS(app)
  
 @app.route("/search")
 def search():
-    response = {"status": "Unable to fulfill request"}
-    url = request.args.get('url')
-    # if request.method == 'POST':
-        # url = request.form.get('url')
-    response = {"status": main.start(url)}
-    return jsonify(response)
+    url = request.form.get('url')
+    if not url: url = request.args.get('url')
+    response = jsonify({'status': main.start(url)})
+    return response 
 
  
 if __name__ == "__main__":
