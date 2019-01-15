@@ -55,14 +55,29 @@ def _get_product_details(source, url):
     pr = parser.Parser(source=source)
     return pr.parse(response, init=True)
 
+def test(url):
+    sku = "0972683275"
+    _set_status("Checking url for validity", sku)
+    time.sleep(5)
+    _set_status("Adding to queue", sku)
+    time.sleep(5)
+    _set_status("Gathering data", sku)
+    time.sleep(5)
+    _set_status("Analyzing language", sku)
+    time.sleep(5)
+    _set_status("Building knowledge base", sku)
+    time.sleep(5)
+    _set_status("Ready", sku)
+
+
+
 def start(url):
     """
     Initiate scraping, parsing, data ingestion, preprocessing, 
     and training. 
     """
    
-    # time.sleep(10)
-    print "======================received request in main...."
+    return test(url)
     decoded = _decode_url(url)
     if not decoded:
         return "Unsupported URL"
@@ -90,6 +105,7 @@ def start(url):
         logger.info("Starting model trianing")
         d2v = training.Document2Vector(sku).train()
         logger.info("Finished model training")
+        _set_status("Ready", sku)
 
     return "Ready"
 
