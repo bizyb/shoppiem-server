@@ -73,19 +73,22 @@ def _get_product_details(source, url):
     pr = parser.Parser(source=source)
     return pr.parse(response, init=True)
 
+def get_answer():
+    time.sleep(5)
+    
 def test_status_update(url):
     print "in test_status_update"
     sku = "0972683275"
     _set_status("Checking url for validity", sku)
-    time.sleep(5)
+    time.sleep(2)
     _set_status("Adding to queue", sku)
-    time.sleep(5)
+    time.sleep(2)
     _set_status("Gathering data", sku)
-    time.sleep(5)
+    time.sleep(2)
     _set_status("Analyzing language", sku)
-    time.sleep(5)
+    time.sleep(2)
     _set_status("Building knowledge base", sku)
-    time.sleep(5)
+    time.sleep(2)
     _set_status("Ready", sku)
 
 
@@ -131,14 +134,10 @@ def start(url):
     decoded = _decode_url(url)
     # if not decoded: return 
 
-    # with ThreadPoolExecutor(max_workers=1) as executor:
-    #     print "============about to submit job============"
-    #     # _threaded(decoded)
-    #     executor.submit(_threaded, decoded, url)
+    
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)
-    print "=============returning to flask!!!!!!!!!!!!!!!!!"
 
 
 # url = "https://www.amazon.com/All-new-Kindle-Paperwhite-Waterproof-Storage/dp/B07CXG6C9W/ref=redir_mobile_desktop?_encoding=UTF8&ref_=ods_gw_ha_eink_ms_jan"
