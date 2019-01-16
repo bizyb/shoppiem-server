@@ -1,16 +1,19 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+# from flask_executor import Executor
 import main
 app = Flask(__name__)
 CORS(app)
+# executor = Executor(app)
  
 @app.route("/search")
 def search():
     url = request.form.get('url')
     if not url: url = request.args.get('url')
+    main.start(url)
     response = jsonify({ 
             "sku": "0972683275",
-            "in_progess": True,
+            "in_progress": True,
             })
     return response 
 

@@ -90,7 +90,8 @@ def test_status_update(url):
 
 
 
-def _threaded():
+def _threaded(decoded, url):
+    print "Thread function running!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     return test_status_update(url)
     sku = decoded[1]
     _set_status("Gathering item details", sku)
@@ -128,10 +129,16 @@ def start(url):
     at the appropriate time and everyone is happy :). 
     """
     decoded = _decode_url(url)
-    if not decoded: return 
+    # if not decoded: return 
 
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        executor.submit(_threaded, decoded)
+    # with ThreadPoolExecutor(max_workers=1) as executor:
+    #     print "============about to submit job============"
+    #     # _threaded(decoded)
+    #     executor.submit(_threaded, decoded, url)
+    executor = ThreadPoolExecutor(max_workers=1)
+    executor.submit(_threaded, decoded, url)
+    executor.shutdown(wait=False)
+    print "=============returning to flask!!!!!!!!!!!!!!!!!"
 
 
 # url = "https://www.amazon.com/All-new-Kindle-Paperwhite-Waterproof-Storage/dp/B07CXG6C9W/ref=redir_mobile_desktop?_encoding=UTF8&ref_=ods_gw_ha_eink_ms_jan"
