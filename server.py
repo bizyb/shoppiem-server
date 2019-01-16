@@ -37,7 +37,6 @@ def status():
     sku = request.form.get('sku')
     if not sku: sku = request.args.get('sku')
     status = main.get_status(sku)
-    # print "in server status ==================: ", status
     msgs = {"done": ["Process 1", "Process 2", "Process 3"], "in_progress": "Process 4"}
     return jsonify({
                     "progress_msgs": msgs, 
