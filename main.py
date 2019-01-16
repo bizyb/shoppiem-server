@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import ThreadPoolExecutor
 import db as DB
 # import ingestion
 from ml import training, inference
@@ -30,8 +31,20 @@ def _decode_url(url):
     return ("Amazon", sku, canonical)
 
 def get_status(sku):
-    res = list(db.job_status.find({"sku": sku}))[0]
-    return res.get("msg")
+    print "Getting status ==================================== "
+    res = None
+    try:
+        # print "all db content: ", list(db.job_status.find())
+        # print "sku db content: ", sku, list(db.job_status.find({"sku": sku}))
+        res = list(db.job_status.find({"sku": sku}))[0]
+        return res.get("msg")
+    except IndexError as e:
+        # this happens due to a race condition because the sku hasn't been
+        # saved to the database yet
+        print e
+        pass
+    
+    
 
 def _set_status(msg, sku):
     """
@@ -40,8 +53,13 @@ def _set_status(msg, sku):
     :param msg: status message
     :param sku: product sku
     """
+    
+    print "Setting the status to=================================> ", msg
     record = {"msg": msg, "sku": sku}
-    db.job_status.update(record, record, upsert=True)
+    if (len(list(db.job_status.find({"sku": sku}))) == 0):
+        db.job_status.insert_one(record)
+    else: db.job_status.update_one({"sku": sku}, {"$set": {"msg": msg}})
+    
     
 def _get_product_details(source, url):
     """
@@ -55,7 +73,8 @@ def _get_product_details(source, url):
     pr = parser.Parser(source=source)
     return pr.parse(response, init=True)
 
-def test(url):
+def test_status_update(url):
+    print "in test_status_update"
     sku = "0972683275"
     _set_status("Checking url for validity", sku)
     time.sleep(5)
@@ -71,24 +90,16 @@ def test(url):
 
 
 
-def start(url):
-    """
-    Initiate scraping, parsing, data ingestion, preprocessing, 
-    and training. 
-    """
-   
-    return test(url)
-    decoded = _decode_url(url)
-    if not decoded:
-        return "Unsupported URL"
-   
+def _threaded():
+    return test_status_update(url)
     sku = decoded[1]
     _set_status("Gathering item details", sku)
     parsed = _get_product_details(decoded[0], decoded[-1])
     prod_name, review_count, page_count = parsed
 
     if review_count <= config.get("misc").get("min_review_count"):
-        return "Not enough data"
+        _set_status("Not Enough Data", sku)
+        return
 
     if not sc_helper.in_inventory(sku):
         _set_status("Adding to queue", sku)
@@ -107,7 +118,21 @@ def start(url):
         logger.info("Finished model training")
         _set_status("Ready", sku)
 
-    return "Ready"
+
+def start(url):
+    """
+    Initiate scraping, parsing, data ingestion, preprocessing, 
+    and training. Note that this is a blocking call. Flask will wait on start(). 
+    We don't want that. We want the script to return control to Flask immediately
+    and continue with the data processing. That way, the sku status can be updated
+    at the appropriate time and everyone is happy :). 
+    """
+    decoded = _decode_url(url)
+    if not decoded: return 
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        executor.submit(_threaded, decoded)
+
 
 # url = "https://www.amazon.com/All-new-Kindle-Paperwhite-Waterproof-Storage/dp/B07CXG6C9W/ref=redir_mobile_desktop?_encoding=UTF8&ref_=ods_gw_ha_eink_ms_jan"
 # start(url)
