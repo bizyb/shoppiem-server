@@ -57,6 +57,12 @@ def question():
             }
     return jsonify(response)
 
+@app.route("/vote")
+def vote():
+    """
+    extract the params here
+    """
+    return jsonify(request.args)
 
 if __name__ == "__main__":
     app.run()
