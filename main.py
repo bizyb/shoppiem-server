@@ -132,12 +132,15 @@ def start(url):
     at the appropriate time and everyone is happy :). 
     """
     decoded = _decode_url(url)
-    # if not decoded: return 
+    if not decoded: return {}
 
     
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)
+    response = {"sku": decoded[1], "product_url": decoded[2], "in_progress": True}
+    return response
+
 
 
 # url = "https://www.amazon.com/All-new-Kindle-Paperwhite-Waterproof-Storage/dp/B07CXG6C9W/ref=redir_mobile_desktop?_encoding=UTF8&ref_=ods_gw_ha_eink_ms_jan"

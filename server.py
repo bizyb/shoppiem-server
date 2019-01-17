@@ -5,17 +5,25 @@ import main
 app = Flask(__name__)
 CORS(app)
 # executor = Executor(app)
- 
+url = "https://www.amazon.com/All-new-Kindle-Paperwhite-Waterproof-Storage/dp/B07CXG6C9W/ref=redir_mobile_desktop?_encoding=UTF8&ref_=ods_gw_ha_eink_ms_jan"
 @app.route("/search")
 def search():
     url = request.form.get('url')
     if not url: url = request.args.get('url')
-    main.start(url)
-    response = jsonify({ 
-            "sku": "0972683275",
-            "in_progress": True,
-            })
-    return response 
+    res = main.start(url)
+    if res: return jsonify(res)
+    return jsonify(res)
+    # if res == -1:
+    #     response = jsonify({ 
+    #             "sku": "0972683275",
+    #             "in_progress": True,
+    #             })
+    # else:
+    #     response = jsonify({ 
+    #                 "sku": None,
+    #                 "in_progress": False,
+    #                 })
+    # return response 
 
 @app.route("/recent")
 def recent():
@@ -24,7 +32,8 @@ def recent():
     """
     recent = {
         "img": "monitor.png", 
-        "title": """Acer SB220Q bi 21.5" Full HD (1920 x 1080) IPS Ultra-Thin Zero Frame Monitor (HDMI & VGA Port)"""
+        "title": """Acer SB220Q bi 21.5" Full HD (1920 x 1080) IPS Ultra-Thin Zero Frame Monitor (HDMI & VGA Port)""",
+        "product_url": url
     }
     recent = [recent for _ in range(3)]
     return jsonify({"recent": recent})
@@ -34,6 +43,7 @@ def status():
     """
     Return the status of the current sku.
     """
+    
     sku = request.form.get('sku')
     if not sku: sku = request.args.get('sku')
     status = main.get_status(sku)
@@ -42,6 +52,8 @@ def status():
                     "progress_msgs": msgs, 
                     "item_ready": False, 
                     "status": status,
+                    "product_name": """Acer SB220Q bi 21.5" Full HD (1920 x 1080) IPS Ultra-Thin Zero Frame Monitor (HDMI & VGA Port)""",
+                    "product_url": url
                     }) 
 
 @app.route("/question")
