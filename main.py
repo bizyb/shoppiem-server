@@ -43,7 +43,7 @@ def get_status(sku):
     try:
         msg = list(db.job_status.find({"sku": sku}))[0]
         msg = msg.get("msg")
-
+        # print "==in get_status======msg: ", msg, sku 
         db_details = DB.init_db(config.get("details_db")).product_details
         product = list(db_details.find({"sku": sku}))[0]
         return {
@@ -65,7 +65,7 @@ def _set_status(msg, sku):
     :param msg: status message
     :param sku: product sku
     """
-    
+    # print "setting status================================= ", sku, msg
     record = {"msg": msg, "sku": sku}
     if (len(list(db.job_status.find({"sku": sku}))) == 0):
         db.job_status.insert_one(record)
@@ -79,9 +79,9 @@ def _get_product_details(source, url, sku):
     :param url: canonical product url
     :return number of reviews and product name
     """
-    response = "DEBUGGGGGG"
-    # sc = scraper.Scraper(source=source)
-    # response = sc.get_request(url)
+    # response = "DEBUGGGGGG"
+    sc = scraper.Scraper(source=source)
+    response = sc.get_request(url)
     pr = parser.Parser(source=source)
     res = pr.parse(response, init=True)
     if res:
@@ -134,62 +134,51 @@ def get_most_recent():
         pass 
     return items
     
-# def test_status_update(url):
-#     print "in test_status_update"
-#     sku = "0972683275"
-#     _set_status("Checking url for validity", sku)
-#     time.sleep(2)
-#     _set_status("Adding to queue", sku)
-#     time.sleep(2)
-#     _set_status("Queued and waiting to be picked up", sku)
-#     time.sleep(2)
-#     _set_status("Gathering data", sku)
-#     time.sleep(2)
-#     _set_status("Analyzing language", sku)
-#     time.sleep(2)
-#     _set_status("Building knowledge base", sku)
-#     time.sleep(2)
-#     _set_status("Ready", sku)
-
 
 def _update_details_db(sku):
     """
     Update the status field of 
     """
-    # TODO: get db name from the config file 
     db_details = DB.init_db(config.get("details_db"))
     db_details = db_details.product_details
     record = {"status": "ready"}
     db_details.update_one({"sku": sku}, {"$set": record})
 
 
-def _threaded(parsed, decoded, url):
+def _threaded(decoded, url):
 
     sku = decoded[1]
-    prod_name, review_count, page_count, img = parsed
+    _set_status("Gathering item details", sku)
+    parsed = _get_product_details(decoded[0], decoded[-1], sku)
+    if not parsed: 
+        """
+        Unable to parse the details page so cannot move forward.
+        """
+        _set_status("Parsing Error", sku)
+        return
 
+    prod_name, review_count, page_count, img = parsed
     if review_count <= config.get("misc").get("min_review_count"):
-        # todo: let the frontend handle this gracefully
         _set_status("Not Enough Data", sku)
         return
 
     if not sc_helper.in_inventory(sku):
-        # _set_status("Waiting to be picked up from queue", sku)
-        # sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
-        # _set_status("Gathering data", sku)
-        # sc_helper.scrape(sku, prod_name, decoded[0])
+        _set_status("Waiting to be picked up from queue", sku)
+        sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
+        _set_status("Gathering data", sku)
+        sc_helper.scrape(sku, prod_name, decoded[0])
        
-        # _set_status("Analyzing language", sku)
-        # logger.info("Starting NLP preprocessing")
-        # preprocess.NLPreprocessor(sku).tokenize()
-        # logger.info("Finished NLP preprocessing")
+        _set_status("Analyzing language", sku)
+        logger.info("Starting NLP preprocessing")
+        preprocess.NLPreprocessor(sku).tokenize()
+        logger.info("Finished NLP preprocessing")
 
-        # _set_status("Building knowledge base", sku)
-        # logger.info("Starting model trianing")
-        # d2v = training.Document2Vector(sku).train()
-        # logger.info("Finished model training")
+        _set_status("Building knowledge base", sku)
+        logger.info("Starting model trianing")
+        d2v = training.Document2Vector(sku).train()
+        logger.info("Finished model training")
         _update_details_db(sku)
-        # _set_status("Ready", sku)
+        _set_status("Ready", sku)
 
 
 def start(url):
@@ -202,20 +191,9 @@ def start(url):
     """
     decoded = _decode_url(url)
     if not decoded: return {}
-
-    sku = decoded[1]
-    _set_status("Gathering item details", sku)
-    parsed = _get_product_details(decoded[0], decoded[-1], sku)
-    if not parsed: 
-        """
-        Unable to parse the details page so cannot move forward.
-        """
-        # Todo: the frontend should exit out of the progress page gracefully
-        return {}
-        
-
+    # _threaded(decoded, url)
     executor = ThreadPoolExecutor(max_workers=1)
-    executor.submit(_threaded, parsed, decoded, url)
+    executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)
     response = {"sku": decoded[1], "product_url": decoded[2], "in_progress": True}
     return response
