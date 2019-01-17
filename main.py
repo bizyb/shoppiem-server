@@ -23,6 +23,8 @@ def _decode_url(url):
     :param url: the raw url (may not be canonical)
     return decoded: a list of the merchant name, sku, and url
     """
+    # TODO: there are many more URL types to handle 
+
     if ("amazon.com" and "/dp") not in url:
         return
     tokens = url.split("/dp/")
@@ -39,8 +41,17 @@ def vote_to_db(question, answer, sku, vote):
 def get_status(sku):
     res = None
     try:
-        res = list(db.job_status.find({"sku": sku}))[0]
-        return res.get("msg")
+        msg = list(db.job_status.find({"sku": sku}))[0]
+        msg = msg.get("msg")
+
+        db_details = DB.init_db(config.get("details_db")).product_details
+        product = list(db_details.find({"sku": sku}))[0]
+        return {
+            "status": msg,
+            "product_name": product.get("product_name"),
+            "product_url": product.get("url"),
+        }
+
     except IndexError as e:
         # this happens due to a race condition because the sku hasn't been
         # saved to the database yet
@@ -68,8 +79,9 @@ def _get_product_details(source, url, sku):
     :param url: canonical product url
     :return number of reviews and product name
     """
-    sc = scraper.Scraper(source=source)
-    response = sc.get_request(url)
+    response = "DEBUGGGGGG"
+    # sc = scraper.Scraper(source=source)
+    # response = sc.get_request(url)
     pr = parser.Parser(source=source)
     res = pr.parse(response, init=True)
     if res:
@@ -147,12 +159,7 @@ def _update_details_db(sku):
 
 
 def _threaded(parsed, decoded, url):
-    # print "Thread function running!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    # return test_status_update(url)
 
-    
-    # _set_status("Gathering item details", sku)
-    # parsed = _get_product_details(decoded[0], decoded[-1])
     sku = decoded[1]
     prod_name, review_count, page_count, img = parsed
 

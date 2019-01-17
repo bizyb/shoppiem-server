@@ -21,7 +21,6 @@ def recent():
     """
     Return the most recent three items that have been analyzed.
     """
-    print "in the server==========recent called--------------"
     recent = main.get_most_recent()
     return jsonify({"recent": recent})
 
@@ -33,13 +32,8 @@ def status():
     
     sku = request.form.get('sku')
     if not sku: sku = request.args.get('sku')
-    status = main.get_status(sku)
-    return jsonify({ 
-                    "item_ready": False, 
-                    "status": status,
-                    "product_name": """Acer SB220Q bi 21.5" Full HD (1920 x 1080) IPS Ultra-Thin Zero Frame Monitor (HDMI & VGA Port)""",
-                    "product_url": url
-                    }) 
+    response = main.get_status(sku)
+    return jsonify(response)
 
 @app.route("/question")
 def question():
