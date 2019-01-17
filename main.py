@@ -102,12 +102,16 @@ def _get_product_details(source, url, sku):
 
     return res
 
-def get_answer(sku):
+def get_answer(question, sku):
     """
     Open a websocket and keep the connection alive for the duration 
     of the session so that the sku model is loaded only once. 
     """
     time.sleep(5)
+    # response = {"confidence": 0.85,
+    #             "question": "What is the meaning of life?",
+    #             "answer": 42
+    #         }
 
 def get_most_recent():
     """

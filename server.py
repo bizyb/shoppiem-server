@@ -1,11 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-# from flask_executor import Executor
 import main
 app = Flask(__name__)
 CORS(app)
-# executor = Executor(app)
-url = "https://www.amazon.com/All-new-Kindle-Paperwhite-Waterproof-Storage/dp/B07CXG6C9W/ref=redir_mobile_desktop?_encoding=UTF8&ref_=ods_gw_ha_eink_ms_jan"
 
 @app.route("/search")
 def search():
@@ -29,7 +26,6 @@ def status():
     """
     Return the status of the current sku.
     """
-    
     sku = request.form.get('sku')
     if not sku: sku = request.args.get('sku')
     response = main.get_status(sku)
@@ -38,18 +34,17 @@ def status():
 @app.route("/question")
 def question():
     """
+    Query the appropriate model for answer.
     """
-    response = main.get_answer()
-    # response = {"confidence": 0.85,
-    #             "question": "What is the meaning of life?",
-    #             "answer": 42
-    #         }
+    sku = request.args.get("sku")
+    question = request.args.get("q")
+    response = main.get_answer(question, sku)
     return jsonify(response)
 
 @app.route("/vote")
 def vote():
     """
-    extract the params here and save it to the db 
+    Save up/down voting data to the database.
     """
     question = request.args.get("q")
     answer = request.args.get("a")
