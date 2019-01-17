@@ -10,6 +10,7 @@ jobs_db: test_jobsdb
 queue_db: queuedb
 status_db: statusdb
 details_db: detailsdb
+votes_db: test_votesdb
 
 
 

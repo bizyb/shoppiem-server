@@ -35,8 +35,17 @@ def _decode_url(url):
 def vote_to_db(question, answer, sku, vote):
     """
     Save user voting on question-answer pair to the database.
+    TODO: Could we ever get duplicate key conflict?
     """
-    pass 
+    db_votes = DB.init_db(config.get("votes_db")).votes 
+    record = {
+        "question": question,
+        "answer": answer,
+        "sku": sku,
+        "vote": vote
+    }
+    db_votes.insert_one(record)
+
 
 def get_status(sku):
     res = None
@@ -108,10 +117,11 @@ def get_answer(question, sku):
     of the session so that the sku model is loaded only once. 
     """
     time.sleep(5)
-    # response = {"confidence": 0.85,
-    #             "question": "What is the meaning of life?",
-    #             "answer": 42
-    #         }
+    response = {"confidence": 0.85,
+                "question": "What is the meaning of life?",
+                "answer": 42
+            }
+    return response
 
 def get_most_recent():
     """

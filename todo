@@ -1,6 +1,8 @@
 
-2. pass parameters to thumbs up/down buttons (sku, question, answer), and save it to the db 
-3. once the item is ready, pass in the sku to load the model persisently (or don't load it)  
+ 
+3. once the item is ready, pass in the sku to load the model persisently (or don't load it) 
+
+
 4. Details page: parse the main image url, save it to s3, and save the s3 url to the details table 
 5. scrape the first two pages of reviews to go through the whole workflow 
 6. handle different valid product urls from amazon 
