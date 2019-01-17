@@ -13,13 +13,21 @@ class Parser(object):
     """
     Prase product detail page or reviews.
     """
+    # TODO: parse the image url, download the image in a separate thread, and save it to S3
     def __init__(self, sku=None, prod_name=None, source=None):
         self.sku = sku 
         self.prod_name = prod_name
         self.source = source.lower()
     
     def parse(self, response, init=False):
+        # for testing
+        prod_name = """Acer SB220Q bi 21.5" Full HD (1920 x 1080) IPS Ultra-Thin Zero Frame Monitor (HDMI & VGA Port)"""
+        img = "https://images-na.ssl-images-amazon.com/images/I/71mJZSQXuRL._SX679_.jpg"
+        return [prod_name, 2015, 202, img]
+
+
         if init:
+            #TODO: validate that all the parameters for review scraping are there; otherwise, return None
             return self._parse_detail(response)
         self._parse_reviews(response)
     

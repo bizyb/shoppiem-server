@@ -30,22 +30,23 @@ def _decode_url(url):
     canonical = tokens[0] + "/dp/" + sku 
     return ("Amazon", sku, canonical)
 
+def vote_to_db(question, answer, sku, vote):
+    """
+    Save user voting on question-answer pair to the database.
+    """
+    pass 
+
 def get_status(sku):
-    print "Getting status ==================================== "
     res = None
     try:
-        # print "all db content: ", list(db.job_status.find())
-        # print "sku db content: ", sku, list(db.job_status.find({"sku": sku}))
         res = list(db.job_status.find({"sku": sku}))[0]
         return res.get("msg")
     except IndexError as e:
         # this happens due to a race condition because the sku hasn't been
         # saved to the database yet
-        print e
-        pass
+        logger.error(e)
+        
     
-    
-
 def _set_status(msg, sku):
     """
     Update current work status.
@@ -54,14 +55,13 @@ def _set_status(msg, sku):
     :param sku: product sku
     """
     
-    print "Setting the status to=================================> ", msg
     record = {"msg": msg, "sku": sku}
     if (len(list(db.job_status.find({"sku": sku}))) == 0):
         db.job_status.insert_one(record)
     else: db.job_status.update_one({"sku": sku}, {"$set": {"msg": msg}})
     
     
-def _get_product_details(source, url):
+def _get_product_details(source, url, sku):
     """
     Scrape product metadata.
 
@@ -71,56 +71,113 @@ def _get_product_details(source, url):
     sc = scraper.Scraper(source=source)
     response = sc.get_request(url)
     pr = parser.Parser(source=source)
-    return pr.parse(response, init=True)
+    res = pr.parse(response, init=True)
+    if res:
+        # Save it to the database
+        db_details = DB.init_db(config.get("details_db"))
+        db_details = db_details.product_details 
+        record = {
+            "status": "processing",
+            "url": url,
+            "product_name": res[0],
+            "review_count": res[1],
+            "review_page_count": res[2], 
+            "source": source,
+            "sku": sku,
+            "img": res[3]
+        }
+        db_details.insert_one(record)
 
-def get_answer():
+    return res
+
+def get_answer(sku):
+    """
+    Open a websocket and keep the connection alive for the duration 
+    of the session so that the sku model is loaded only once. 
+    """
     time.sleep(5)
+
+def get_most_recent():
+    """
+    Get the most recent three items that have been analyzed.
+    """
+   
+    db_recent = DB.init_db(config.get("details_db")).product_details
+    res = list(db_recent.find({"status": "ready"}).sort('timestamp', pymongo.DESCENDING))
+   
+    items = []
+    for i in range(3):
+        obj = res[i]
+        item = {
+            "img": obj.get("img"), 
+            "title": obj.get("product_name"),
+            "product_url": obj.get("url"),
+            "sku": obj.get("sku")
+        }
+        items.append(item)
+    return items
     
-def test_status_update(url):
-    print "in test_status_update"
-    sku = "0972683275"
-    _set_status("Checking url for validity", sku)
-    time.sleep(2)
-    _set_status("Adding to queue", sku)
-    time.sleep(2)
-    _set_status("Gathering data", sku)
-    time.sleep(2)
-    _set_status("Analyzing language", sku)
-    time.sleep(2)
-    _set_status("Building knowledge base", sku)
-    time.sleep(2)
-    _set_status("Ready", sku)
+# def test_status_update(url):
+#     print "in test_status_update"
+#     sku = "0972683275"
+#     _set_status("Checking url for validity", sku)
+#     time.sleep(2)
+#     _set_status("Adding to queue", sku)
+#     time.sleep(2)
+#     _set_status("Queued and waiting to be picked up", sku)
+#     time.sleep(2)
+#     _set_status("Gathering data", sku)
+#     time.sleep(2)
+#     _set_status("Analyzing language", sku)
+#     time.sleep(2)
+#     _set_status("Building knowledge base", sku)
+#     time.sleep(2)
+#     _set_status("Ready", sku)
 
 
+def _update_details_db(sku):
+    """
+    Update the status field of 
+    """
+    # TODO: get db name from the config file 
+    db_details = DB.init_db("details_db")
+    db_details = db_details.product_details
+    record = {"status": "ready"}
+    db_details.update_one({"sku": sku}, {"$set": record})
 
-def _threaded(decoded, url):
-    print "Thread function running!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-    return test_status_update(url)
+
+def _threaded(parsed, decoded, url):
+    # print "Thread function running!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    # return test_status_update(url)
+
+    
+    # _set_status("Gathering item details", sku)
+    # parsed = _get_product_details(decoded[0], decoded[-1])
     sku = decoded[1]
-    _set_status("Gathering item details", sku)
-    parsed = _get_product_details(decoded[0], decoded[-1])
-    prod_name, review_count, page_count = parsed
+    prod_name, review_count, page_count, img = parsed
 
     if review_count <= config.get("misc").get("min_review_count"):
+        # todo: let the frontend handle this gracefully
         _set_status("Not Enough Data", sku)
         return
 
     if not sc_helper.in_inventory(sku):
-        _set_status("Adding to queue", sku)
-        sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
-        _set_status("Gathering data", sku)
-        sc_helper.scrape(sku, prod_name, decoded[0])
+        # _set_status("Waiting to be picked up from queue", sku)
+        # sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
+        # _set_status("Gathering data", sku)
+        # sc_helper.scrape(sku, prod_name, decoded[0])
        
-        _set_status("Analyzing language", sku)
-        logger.info("Starting NLP preprocessing")
-        preprocess.NLPreprocessor(sku).tokenize()
-        logger.info("Finished NLP preprocessing")
+        # _set_status("Analyzing language", sku)
+        # logger.info("Starting NLP preprocessing")
+        # preprocess.NLPreprocessor(sku).tokenize()
+        # logger.info("Finished NLP preprocessing")
 
-        _set_status("Building knowledge base", sku)
-        logger.info("Starting model trianing")
-        d2v = training.Document2Vector(sku).train()
-        logger.info("Finished model training")
-        _set_status("Ready", sku)
+        # _set_status("Building knowledge base", sku)
+        # logger.info("Starting model trianing")
+        # d2v = training.Document2Vector(sku).train()
+        # logger.info("Finished model training")
+        _update_details_db(sku)
+        # _set_status("Ready", sku)
 
 
 def start(url):
@@ -134,9 +191,19 @@ def start(url):
     decoded = _decode_url(url)
     if not decoded: return {}
 
-    
+    sku = decoded[1]
+    _set_status("Gathering item details", sku)
+    parsed = _get_product_details(decoded[0], decoded[-1], sku)
+    if not parsed: 
+        """
+        Unable to parse the details page so cannot move forward.
+        """
+        # Todo: the frontend should exit out of the progress page gracefully
+        return {}
+        
+
     executor = ThreadPoolExecutor(max_workers=1)
-    executor.submit(_threaded, decoded, url)
+    executor.submit(_threaded, parsed, decoded, url)
     executor.shutdown(wait=False)
     response = {"sku": decoded[1], "product_url": decoded[2], "in_progress": True}
     return response
@@ -150,3 +217,9 @@ def start(url):
 
 
 
+# https://www.amazon.com/Dell-Screen-LED-Lit-Monitor-S2418H/dp/B06XYSZRQT/ref=pd_ybh_a_3?_encoding=UTF8&psc=1&refRID=EAAK98ZMTWNX5S28XRXT
+
+
+
+#unsupported url
+# https://www.amazon.com/gp/product/B075ZYR6VK/ref=s9_acsd_al_bw_c_x_3_w?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-7&pf_rd_r=YAAGZ9808TP4D5BMEWCK&pf_rd_r=YAAGZ9808TP4D5BMEWCK&pf_rd_t=101&pf_rd_p=68591a72-1aae-4981-b0e3-232056249df1&pf_rd_p=68591a72-1aae-4981-b0e3-232056249df1&pf_rd_i=17877490011
