@@ -117,20 +117,21 @@ def get_most_recent():
     """
     Get the most recent three items that have been analyzed.
     """
-   
     db_recent = DB.init_db(config.get("details_db")).product_details
     res = list(db_recent.find({"status": "ready"}).sort('timestamp', pymongo.DESCENDING))
-   
     items = []
-    for i in range(3):
-        obj = res[i]
-        item = {
-            "img": obj.get("img"), 
-            "title": obj.get("product_name"),
-            "product_url": obj.get("url"),
-            "sku": obj.get("sku")
-        }
-        items.append(item)
+    try:
+        for i in range(3):
+            obj = res[i]
+            item = {
+                "img": obj.get("img"), 
+                "title": obj.get("product_name"),
+                "product_url": obj.get("url"),
+                "sku": obj.get("sku")
+            }
+            items.append(item)
+    except IndexError:
+        pass 
     return items
     
 # def test_status_update(url):
@@ -156,7 +157,7 @@ def _update_details_db(sku):
     Update the status field of 
     """
     # TODO: get db name from the config file 
-    db_details = DB.init_db("details_db")
+    db_details = DB.init_db(config.get("details_db"))
     db_details = db_details.product_details
     record = {"status": "ready"}
     db_details.update_one({"sku": sku}, {"$set": record})
