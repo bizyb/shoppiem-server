@@ -12,3 +12,6 @@
 10. Once ready, dockerize the frontend and the backend separately 
 11. register a new domain name 
 12. deploy to aws  
+
+
+13. Have a default avatar for missing image 

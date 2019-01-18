@@ -61,7 +61,7 @@ class Scraper(object):
         '''
         Return HTTP response object.
 
-        :param init: initial request for product detail
+        :param init: initial request for product detail or image download
         :return response: an html response
         ''' 
         response = None
@@ -89,7 +89,7 @@ class Scraper(object):
         
         if not init and response != None:
             # parse the reviews and save them to the database
-            
+            # TODO: start a new thread to parse; otherwise, this will block
             pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
             pr.parse(response.text)
 

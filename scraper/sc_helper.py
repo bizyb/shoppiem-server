@@ -90,7 +90,7 @@ def scrape(sku, prod_name, source):
     exceptions.
     """
     thread_count = config.get("scraper").get("thread_count")
-    q_db = DB.init_db(config.get("queue_db")) #TODO: 
+    q_db = DB.init_db(config.get("queue_db")) 
     urls = q_db.queue.find({"sku": sku}).sort('timestamp', pymongo.ASCENDING))
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
         sc = scraper.Scraper(sku, prod_name, source)

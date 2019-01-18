@@ -1,3 +1,4 @@
+import aws
 from bs4 import BeautifulSoup as bsoup
 import ingestion
 import re
@@ -14,6 +15,7 @@ class Parser(object):
     Prase product detail page or reviews.
     """
     # TODO: parse the image url, download the image in a separate thread, and save it to S3
+    #TODO: do image downloading and uploading in the background after the model has been trained with celery
     def __init__(self, sku=None, prod_name=None, source=None):
         self.sku = sku 
         self.prod_name = prod_name
@@ -21,10 +23,9 @@ class Parser(object):
     
     def parse(self, response, init=False):
         # for testing
-        prod_name = """Acer SB220Q bi 21.5" Full HD (1920 x 1080) IPS Ultra-Thin Zero Frame Monitor (HDMI & VGA Port)"""
-        img = "https://images-na.ssl-images-amazon.com/images/I/71mJZSQXuRL._SX679_.jpg"
-        return [prod_name, 2015, 202, img]
-
+        # prod_name = """Acer SB220Q bi 21.5" Full HD (1920 x 1080) IPS Ultra-Thin Zero Frame Monitor (HDMI & VGA Port)"""
+        # img = "https://images-na.ssl-images-amazon.com/images/I/71mJZSQXuRL._SX679_.jpg"
+        # return [prod_name, 2015, 202, img]
 
         if init:
             #TODO: validate that all the parameters for review scraping are there; otherwise, return None
@@ -61,6 +62,7 @@ class Parser(object):
     def _amazon_detail_parser(self, soup):
         rcount_selector = selectors.get(self.source).get("review_count")
         name_selector = selectors.get(self.source).get("product_name")
+        image_selector = selectors.get(self.source).get("product_image")
 
         # get review count
         text = soup.select(rcount_selector)[0].contents[0]
@@ -71,8 +73,13 @@ class Parser(object):
 
         # get product name
         name = soup.select(name_selector)[0].text.strip()
-        
-        return (name, review_count, page_count)
+        img_url = self._get_image_url(soup, image_selector)
+
+        return {"product_name": name,
+                "review_count": review_count,
+                "page_count": page_count,
+                "img_url": img_url,
+            }
     
     def _get_page_count(self, count, divisor=1):
 		count = int(count)
@@ -80,5 +87,33 @@ class Parser(object):
 		if count % divisor != 0:
 			page_count += 1
 		return page_count
+    
+    def _get_image_url(self, soup, sel):
+        """
+        Select the largest image and return its url.
+        """
+        img_dict = eval(soup.select(sel)[0].attrs.get('data-a-dynamic-image'))
+        _max, _key = -1, -1
+        for k, v in img_dict.items():
+            if v[0] > _max:
+                _max = v[0]
+                _key = k
+        return _key
+
+
+    
+    # def _upload_image(self, url):
+    #     """
+    #     Upload the image to our S3 bucket and return its url. 
+    #     If upload fails for some reason, just return the original 
+    #     url.
+    #     """
+    #     try:
+    #         sc = scraper.Scraper(sku, prod_name, source)
+    #         sc.get_request(url, init=False)
+    #         stream = 
+    #         url = aws.upload_file(stream, self.sku, mime) 
+    #     except Exception:
+    #         return url
 
 
