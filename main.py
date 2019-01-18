@@ -5,6 +5,7 @@ from ml import training, inference
 from nlp import preprocess
 from parser import parser
 import pymongo
+import re
 from scraper import scraper, sc_helper
 from services import logger
 import yaml
@@ -24,13 +25,21 @@ def _decode_url(url):
     return decoded: a list of the merchant name, sku, and url
     """
     # TODO: there are many more URL types to handle 
+    # gp/product/B079Y53BPH
 
-    if ("amazon.com" and "/dp") not in url:
-        return
-    tokens = url.split("/dp/")
-    sku = tokens[-1].split("/")[0]
-    canonical = tokens[0] + "/dp/" + sku 
-    return ("Amazon", sku, canonical)
+    if "amazon.com" not in url: return 
+    suffix = "gp/product"
+    tokens = re.findall("/gp/product/\w{10}", url)
+    if not tokens: 
+        tokens = re.findall("/dp/\w{10}", url)
+        suffix = "dp"
+    if not tokens: return 
+    try:
+        sku = tokens[0].split("/")[-1]
+        canonical = "https://www.amazon.com" + "/" + suffix + "/" + sku 
+        return ("Amazon", sku, canonical)
+    except Exception:
+        return 
 
 def vote_to_db(question, answer, sku, vote):
     """
@@ -222,6 +231,8 @@ def start(url):
     """
     decoded = _decode_url(url)
     if not decoded: return {}
+    print decoded 
+    return
     
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(_threaded, decoded, url)
@@ -242,16 +253,8 @@ def start(url):
 
 
 
-# url = "https://www.amazon.com/All-new-Kindle-Paperwhite-Waterproof-Storage/dp/B07CXG6C9W/ref=redir_mobile_desktop?_encoding=UTF8&ref_=ods_gw_ha_eink_ms_jan"
-# start(url)
+# B07CXG6C9W
+# B06XYSZRQT
+# B075ZYR6VK
 # # 0972683275"
 
-
-
-
-# https://www.amazon.com/Dell-Screen-LED-Lit-Monitor-S2418H/dp/B06XYSZRQT/ref=pd_ybh_a_3?_encoding=UTF8&psc=1&refRID=EAAK98ZMTWNX5S28XRXT
-
-
-
-#unsupported url
-# https://www.amazon.com/gp/product/B075ZYR6VK/ref=s9_acsd_al_bw_c_x_3_w?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-7&pf_rd_r=YAAGZ9808TP4D5BMEWCK&pf_rd_r=YAAGZ9808TP4D5BMEWCK&pf_rd_t=101&pf_rd_p=68591a72-1aae-4981-b0e3-232056249df1&pf_rd_p=68591a72-1aae-4981-b0e3-232056249df1&pf_rd_i=17877490011

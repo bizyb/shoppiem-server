@@ -46,10 +46,10 @@ doc2vec:
 # Scraper parameters
 #-------------------------------------------------
 scraper:
-  thread_count: 40
+  thread_count: 5
   http_timeout: 3
-  sleep_max: 1
-  sleep_min: 0
+  sleep_max: 10
+  sleep_min: 5
   http_codes:
     success: 200
     fail: 0
@@ -58,6 +58,6 @@ scraper:
     https: http://5.79.73.131:13010 
 
 misc:
-  min_review_count: 50
+  min_review_count: 0
   error_msg: "Unknown Error"
 
