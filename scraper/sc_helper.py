@@ -38,13 +38,10 @@ def in_inventory(sku):
     :param sku: product sku
     :return: whether or not the sku is in inventory
     """
-    # print "==========checking inventory=================="
-    
 
     # is there a model available?
     mypath = config.get("doc2vec").get("path")
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-    # print "=======files in directory=========: ", onlyfiles
     if sku in onlyfiles:
         _set_status("Ready", sku)
         return True
@@ -106,19 +103,16 @@ def add_to_queue(source, sku, page_count):
 def scrape(sku, prod_name, source):
     """
     Run the scraper until the queue is empty.
-
-    #TODO: if something is funky, disable executor call. It suppresses
-    exceptions.
     """
     thread_count = config.get("scraper").get("thread_count")
     q_db = DB.init_db(config.get("queue_db")) 
     urls = q_db.queue.find({"sku": sku}).sort('timestamp', pymongo.ASCENDING)
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
         sc = scraper.Scraper(sku, prod_name, source)
-        for url in urls[:1]:
+        for url in urls[:3]:
             url = url.get("url")
-            sc.get_request(url, init=False)
-            # executor.submit(sc.get_request, url, init=False)
+            # sc.get_request(url, init=False)
+            executor.submit(sc.get_request, url, init=False)
 
 
 

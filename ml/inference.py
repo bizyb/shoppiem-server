@@ -35,7 +35,6 @@ class Inference(Doc2VecBase):
         param query: an enriched query
         return sents: a list of inferred sentences 
         '''
-        #TODO: return the probabilities as well for optimization
         
         steps = config.get("doc2vec").get("inference").get("steps") 
         topn = config.get("doc2vec").get("inference").get("topn")

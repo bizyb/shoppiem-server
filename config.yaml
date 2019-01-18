@@ -3,12 +3,11 @@
 #-------------------------------------------------
 host: localhost
 port: 27017
-db_name: sunbeamdb
 sent_db: test_sentencedb
 ingestion_db: test_rawfeeddb
-queue_db: queuedb
-status_db: statusdb
-details_db: detailsdb
+queue_db: test_queuedb
+status_db: test_statusdb
+details_db: test_detailsdb
 votes_db: test_votesdb
 
 #-------------------------------------------------
