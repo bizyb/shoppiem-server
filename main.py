@@ -64,13 +64,16 @@ def get_status(sku):
         product = list(db_details.find({"sku": sku}))
         product_url = ""
         product_name = ""
+        image_url = ""
         if product: 
             product_name = product[0].get("product_name")
             product_url = product[0].get("url")
+            image_url = product[0].get("img")
         return {
             "status": msg,
             "product_name": product_name,
             "product_url": product_url,
+            "image_url": image_url,
         }
     except IndexError as e:
         # this happens due to a race condition because the sku hasn't been
@@ -250,6 +253,7 @@ def start(url):
                 "in_progress": __in_progress__,
             }
     response.update(status)
+    print response
     return response
 
 
