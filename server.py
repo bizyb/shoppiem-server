@@ -4,11 +4,13 @@ import main
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/search")
+@app.route("/search", methods=["POST"])
 def search():
-    url = request.form.get('url')
-    if not url: url = request.args.get('url')
-    res = main.start(url)
+
+    json = request.json.get('url')
+    if not json: return jsonify({})
+
+    res = main.start(json.get("q"))
     if res: return jsonify(res)
     return jsonify(res)
     

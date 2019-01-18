@@ -144,8 +144,6 @@ def get_most_recent():
     """
     db_recent = DB.init_db(config.get("details_db")).product_details
     res = list(db_recent.find({"status": "ready"}).sort('timestamp', pymongo.DESCENDING))
-    for i in res:
-        print i.get("timestamp")
     items = []
     try:
         for i in range(3):
