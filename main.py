@@ -1,7 +1,6 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
 import db as DB
-# import ingestion
 from ml import training, inference
 from nlp import preprocess
 from parser import parser
@@ -51,7 +50,6 @@ def vote_to_db(question, answer, sku, vote):
 
 def get_status(sku):
     res = None
-    print "========getting status for sku: ", sku
     try:
         msg = list(db_status.find({"sku": sku}))[0]
         msg = msg.get("msg")
@@ -100,12 +98,12 @@ def _get_product_details(source, url, sku):
         record = {
             "status": "processing",
             "url": url,
-            "product_name": res[0],
-            "review_count": res[1],
-            "review_page_count": res[2], 
+            "product_name": res.get("product_name"),
+            "review_count": res.get("review_count"),
+            "review_page_count": res.get("page_count"), 
             "source": source,
             "sku": sku,
-            "img": res[3]
+            "img": res.get("img_url"),
         }
         db_details.insert_one(record)
 
@@ -171,6 +169,7 @@ def _threaded(decoded, url):
     child threads. Those operations also need to update the status before 
     exiting.
     """
+   
     try:
         sku = decoded[1]
         if not sc_helper.in_inventory(sku):
@@ -183,7 +182,10 @@ def _threaded(decoded, url):
                 _set_status(__error__, sku)
                 return
 
-            prod_name, review_count, page_count, img = parsed
+            prod_name = parsed.get("product_name")
+            review_count = parsed.get("review_count")
+            page_count = parsed.get("page_count")
+
             if review_count <= config.get("misc").get("min_review_count"):
                 _set_status("Not Enough Data", sku)
                 return
@@ -224,7 +226,18 @@ def start(url):
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)
-    response = {"sku": decoded[1], "product_url": decoded[2], "in_progress": True}
+
+    sku = decoded[1]
+    __ready__ = "Ready"
+    __in_progress__ = True
+    status = get_status(sku)
+    if status.get("status") == __ready__: __in_progress__ = False
+    response = {
+                "sku": sku, 
+                "product_url": decoded[2], 
+                "in_progress": __in_progress__,
+            }
+    response.update(status)
     return response
 
 
