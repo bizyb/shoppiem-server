@@ -16,6 +16,7 @@ with open('config.yaml') as f:
 with open("scraper/user_agents.yaml") as f:
     ua = yaml.safe_load(f)
 settings = config.get("scraper")
+q_db = DB.init_db(config.get("queue_db")).queue
 __error__ = config.get("misc").get("error_msg")
 
 class Scraper(object):
@@ -98,6 +99,9 @@ class Scraper(object):
             # parse the reviews and save them to the database 
             pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
             pr.parse(response.text)
+
+            # remove it from the queue
+            q_db.delete_one({"sku": sku, "url": url})
 
         if response: return response.text
         

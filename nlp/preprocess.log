@@ -100,3 +100,11 @@
 2019-01-17 23:43:33,937 INFO: Finished loading NLP model
 2019-01-17 23:43:33,937 INFO: Tokenizing documents into sentences
 2019-01-17 23:43:38,458 INFO: Finished document tokenization
+2019-01-17 23:58:51,307 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-17 23:59:01,668 INFO: Finished loading NLP model
+2019-01-17 23:59:01,668 INFO: Tokenizing documents into sentences
+2019-01-17 23:59:04,983 INFO: Finished document tokenization
+2019-01-18 00:05:15,643 INFO: Loading spaCy en_core_web_lg NLP model
+2019-01-18 00:05:25,994 INFO: Finished loading NLP model
+2019-01-18 00:05:25,995 INFO: Tokenizing documents into sentences
+2019-01-18 00:05:29,741 INFO: Finished document tokenization
