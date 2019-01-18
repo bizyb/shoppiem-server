@@ -12,6 +12,12 @@ status_db: statusdb
 details_db: detailsdb
 votes_db: test_votesdb
 
+#-------------------------------------------------
+# AWS Tokens
+#-------------------------------------------------
+aws_access_key_id: AKIAJP7QTUMWN425UFJQ
+aws_secret_access_key: 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
+s3_directory: "sunbeam"
 
 
 #-------------------------------------------------

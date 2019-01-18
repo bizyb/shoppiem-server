@@ -35,7 +35,8 @@ def _decode_url(url):
 def vote_to_db(question, answer, sku, vote):
     """
     Save user voting on question-answer pair to the database.
-    TODO: Could we ever get duplicate key conflict?
+    TODO: Make sure we only save the last vote the user gives for any given question/answer pair
+    TODO: That means managing the session. Otherwise, we could artifically bias or votes.
     """
     db_votes = DB.init_db(config.get("votes_db")).votes 
     record = {
