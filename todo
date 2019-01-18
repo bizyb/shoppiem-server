@@ -1,9 +1,12 @@
 
  
-3. once the item is ready, pass in the sku to load the model persisently (or don't load it) 
+1. once the item is ready, pass in the sku to load the model persisently (or don't load it) 
+2. Details page: parse the main image url, save it to s3, and save the s3 url to the details table 
+3. Restrict number votes per question/session
+4. load models when recent items clicked (no need to load actually; similar to point #1 because the model is loaded only 
+when a question is asked; we can keep the model persistently loaded for the session to speed up the q and a process later
+but for now, we'll load the model anew every a question is asked)
 
-
-4. Details page: parse the main image url, save it to s3, and save the s3 url to the details table 
 5. scrape the first two pages of reviews to go through the whole workflow 
 6. handle different valid product urls from amazon 
 7. touch up the ui in the q and a section 

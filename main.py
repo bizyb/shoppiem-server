@@ -14,6 +14,7 @@ config = None
 with open('config.yaml') as f:
     config = yaml.safe_load(f)
 db = DB.init_db("status_db")
+__error__ = config.get("misc").get("error_msg")
 
 def _decode_url(url):
     """
@@ -157,39 +158,58 @@ def _update_details_db(sku):
 
 
 def _threaded(decoded, url):
+    """
+    Run the whole data scraping, processing, and analysis in new threads.
+    Each thread, beginning with this one, will make its calls in a try-except
+    block. Why do it this way? Because the parent thread that launched this 
+    thread dies immediately. Therefore, when an exception is raised in the child
+    thread, there's no one to receive it. This is bad for the client. The client
+    relies on the status of the job. If an exception is raised in the child thread,
+    the thread would die and the status would no longer be updated. This would cause
+    the client to stall forever with a progress animation. If an exception 
+    is raised, we want to update the status right away so that the user 
+    doesn't have to wait. 
 
-    sku = decoded[1]
-    _set_status("Gathering item details", sku)
-    parsed = _get_product_details(decoded[0], decoded[-1], sku)
-    if not parsed: 
-        """
-        Unable to parse the details page so cannot move forward.
-        """
-        _set_status("Parsing Error", sku)
-        return
+    All operations down the line like scraping or some other launch their own 
+    child threads. Those operations also need to update the status before 
+    exiting.
+    """
+    try:
+        sku = decoded[1]
+        _set_status("Gathering item details", sku)
+        parsed = _get_product_details(decoded[0], decoded[-1], sku)
+        if not parsed: 
+            """
+            Unable to parse the details page so cannot move forward.
+            """
+            _set_status(__error__, sku)
+            return
 
-    prod_name, review_count, page_count, img = parsed
-    if review_count <= config.get("misc").get("min_review_count"):
-        _set_status("Not Enough Data", sku)
-        return
+        prod_name, review_count, page_count, img = parsed
+        if review_count <= config.get("misc").get("min_review_count"):
+            _set_status("Not Enough Data", sku)
+            return
 
-    if not sc_helper.in_inventory(sku):
-        _set_status("Waiting to be picked up from queue", sku)
-        sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
-        _set_status("Gathering data", sku)
-        sc_helper.scrape(sku, prod_name, decoded[0])
-       
-        _set_status("Analyzing language", sku)
-        logger.info("Starting NLP preprocessing")
-        preprocess.NLPreprocessor(sku).tokenize()
-        logger.info("Finished NLP preprocessing")
+        if not sc_helper.in_inventory(sku):
+            _set_status("Waiting to be picked up from queue", sku)
+            sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
+            _set_status("Gathering data", sku)
+            sc_helper.scrape(sku, prod_name, decoded[0])
+        
+            _set_status("Analyzing language", sku)
+            logger.info("Starting NLP preprocessing")
+            preprocess.NLPreprocessor(sku).tokenize()
+            logger.info("Finished NLP preprocessing")
 
-        _set_status("Building knowledge base", sku)
-        logger.info("Starting model trianing")
-        d2v = training.Document2Vector(sku).train()
-        logger.info("Finished model training")
-        _update_details_db(sku)
-        _set_status("Ready", sku)
+            _set_status("Building knowledge base", sku)
+            logger.info("Starting model trianing")
+            d2v = training.Document2Vector(sku).train()
+            logger.info("Finished model training")
+            _update_details_db(sku)
+            _set_status("Ready", sku)
+    except Exception as e:
+        logger.exception(e)
+        _set_status(__error__, sku)
 
 
 def start(url):
@@ -202,7 +222,7 @@ def start(url):
     """
     decoded = _decode_url(url)
     if not decoded: return {}
-    # _threaded(decoded, url)
+    
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)

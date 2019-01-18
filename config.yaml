@@ -61,4 +61,5 @@ scraper:
 
 misc:
   min_review_count: 50
+  error_msg: "Other Error"
 

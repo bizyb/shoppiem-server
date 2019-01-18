@@ -22,11 +22,7 @@ class Parser(object):
         self.source = source.lower()
     
     def parse(self, response, init=False):
-        # for testing
-        # prod_name = """Acer SB220Q bi 21.5" Full HD (1920 x 1080) IPS Ultra-Thin Zero Frame Monitor (HDMI & VGA Port)"""
-        # img = "https://images-na.ssl-images-amazon.com/images/I/71mJZSQXuRL._SX679_.jpg"
-        # return [prod_name, 2015, 202, img]
-
+       
         if init:
             #TODO: validate that all the parameters for review scraping are there; otherwise, return None
             return self._parse_detail(response)
@@ -65,15 +61,14 @@ class Parser(object):
         name_selector = selectors.get(self.source).get("product_name")
         image_selector = selectors.get(self.source).get("product_image")
         
-
         # get review count
         review_count = -1
-        # try:
-        review_count = self._amazon_review_count(soup, rcount_sel_outer, rcount_sel_inner)
-        # except Exception:
-        #     # if we have a problem parsing the review count, then 
-        #     # we have nothing to work with
-        #     return {}
+        try:
+            review_count = self._amazon_review_count(soup, rcount_sel_outer, rcount_sel_inner)
+        except Exception:
+            # if we have a problem parsing the review count, then 
+            # we have nothing to work with
+            return {}
         
         page_count = self._get_page_count(review_count, divisor=10)
 
