@@ -40,22 +40,6 @@ class Document2Vector(Doc2VecBase):
             tagged_docs.append(obj)
         return tagged_docs 
     
-    # def _get_sent_tags(self, doc):
-    #     """
-    #     Get all sentence tags for a given tag with regex pattern matching.
-    #     In order to allow for a constant reverse sentence lookup, we're using
-    #     a 'flat' document structure, where UUIDs are used as keys for sentences.
-
-    #     :param doc: a database record of raw data 
-    #     :return tags: a list of tags 
-    #     """
-    #     pattern = '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
-    #     tags = []
-    #     for key in doc.keys():
-    #         found = re.findall(pattern, key)
-    #         if found: tags.append(found[0])
-    #     return tags
-
     def _get_params(self):
         """
         Set doc2vec training parameters.

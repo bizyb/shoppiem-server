@@ -120,6 +120,7 @@ def _get_product_details(source, url, sku):
             "source": source,
             "sku": sku,
             "img": res.get("img_url"),
+            "timestamp": time.time(),
         }
         db_details.insert_one(record)
 
@@ -143,13 +144,20 @@ def get_most_recent():
     """
     db_recent = DB.init_db(config.get("details_db")).product_details
     res = list(db_recent.find({"status": "ready"}).sort('timestamp', pymongo.DESCENDING))
+    for i in res:
+        print i.get("timestamp")
     items = []
     try:
         for i in range(3):
             obj = res[i]
+            title = obj.get("product_name")
+            _max_length = config.get("misc").get("max_title_length")
+            if len(title) > _max_length:
+                title = title[:_max_length]
+                title += "..."
             item = {
-                "img": obj.get("img"), 
-                "title": obj.get("product_name"),
+                "image_url": obj.get("img"), 
+                "title": title,
                 "product_url": obj.get("url"),
                 "sku": obj.get("sku")
             }
@@ -253,13 +261,4 @@ def start(url):
                 "in_progress": __in_progress__,
             }
     response.update(status)
-    print response
     return response
-
-
-
-# B07CXG6C9W
-# B06XYSZRQT
-# B075ZYR6VK
-# # 0972683275"
-

@@ -5,6 +5,7 @@ from os.path import isfile, join
 import pymongo
 from services import logger
 import scraper
+import time
 import yaml
 logger = logger.Loggers(__name__).get_logger()
 
@@ -96,7 +97,8 @@ def add_to_queue(source, sku, page_count):
         record = {
                 "url": url,
                 "sku": sku,
-                "done": False
+                "done": False,
+                "timestamp": time.time(),
         }
         q_db.queue.update(record, record, upsert=True)
     

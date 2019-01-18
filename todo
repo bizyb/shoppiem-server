@@ -6,16 +6,17 @@
 4. load models when recent items clicked (no need to load actually; similar to point #1 because the model is loaded only 
 when a question is asked; we can keep the model persistently loaded for the session to speed up the q and a process later
 but for now, we'll load the model anew every a question is asked)
-5. Make sure detailed error messages don't show up in the browser under the progress animation
 
-5. scrape the first three pages of reviews to go through the whole workflow 
-6. handle different valid product urls from amazon 
-7. touch up the ui in the q and a section 
 
-9. try the entire workflow with multiple different items, generating possible hiccups in the process and handling it gracefully
 10. Once ready, dockerize the frontend and the backend separately 
 11. register a new domain name 
 12. deploy to aws  
 
 
 13. Have a default avatar for missing image 
+
+14. load the same page on refresh; need to add routes
+15: all requests as POST 
+16: block multiple attempts to vote 
+17. Query when the sentences are too few: need to say please ask a more detailed question
+18. If detail parsing fails, attemp to scrape a few more times before giving up

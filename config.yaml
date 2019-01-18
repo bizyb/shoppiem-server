@@ -60,4 +60,5 @@ scraper:
 misc:
   min_review_count: 50
   error_msg: "Unknown Error"
+  max_title_length: 90
 
