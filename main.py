@@ -24,9 +24,7 @@ def _decode_url(url):
     :param url: the raw url (may not be canonical)
     return decoded: a list of the merchant name, sku, and url
     """
-    # TODO: there are many more URL types to handle 
-    # gp/product/B079Y53BPH
-
+    
     if "amazon.com" not in url: return 
     suffix = "gp/product"
     tokens = re.findall("/gp/product/\w{10}", url)
@@ -63,17 +61,22 @@ def get_status(sku):
         msg = list(db_status.find({"sku": sku}))[0]
         msg = msg.get("msg")
         db_details = DB.init_db(config.get("details_db")).product_details
-        product = list(db_details.find({"sku": sku}))[0]
+        product = list(db_details.find({"sku": sku}))
+        product_url = ""
+        product_name = ""
+        if product: 
+            product_name = product[0].get("product_name")
+            product_url = product[0].get("url")
         return {
             "status": msg,
-            "product_name": product.get("product_name"),
-            "product_url": product.get("url"),
+            "product_name": product_name,
+            "product_url": product_url,
         }
-
     except IndexError as e:
         # this happens due to a race condition because the sku hasn't been
         # saved to the database yet
         logger.exception(e)
+    return {}
         
     
 def _set_status(msg, sku):
@@ -96,9 +99,10 @@ def _get_product_details(source, url, sku):
     :param url: canonical product url
     :return number of reviews and product name
     """
+    
     sc = scraper.Scraper(source=source)
     response = sc.get_request(url)
-    pr = parser.Parser(source=source)
+    pr = parser.Parser(sku=sku, source=source)
     res = pr.parse(response, init=True)
     if res:
         # Save it to the database
@@ -178,7 +182,6 @@ def _threaded(decoded, url):
     child threads. Those operations also need to update the status before 
     exiting.
     """
-   
     try:
         sku = decoded[1]
         if not sc_helper.in_inventory(sku):
@@ -198,9 +201,9 @@ def _threaded(decoded, url):
             if review_count <= config.get("misc").get("min_review_count"):
                 _set_status("Not Enough Data", sku)
                 return
-
+    
             _set_status("Waiting to be picked up from queue", sku)
-            sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
+            sc_helper.add_to_queue(decoded[0], decoded[1], page_count)
             _set_status("Gathering data", sku)
             sc_helper.scrape(sku, prod_name, decoded[0])
         
@@ -231,8 +234,6 @@ def start(url):
     """
     decoded = _decode_url(url)
     if not decoded: return {}
-    print decoded 
-    return
     
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(_threaded, decoded, url)

@@ -24,21 +24,27 @@ class Parser(object):
     def parse(self, response, init=False):
        
         if init:
-            #TODO: validate that all the parameters for review scraping are there; otherwise, return None
             return self._parse_detail(response)
         self._parse_reviews(response)
     
     def _parse_detail(self, response):
-        soup = bsoup(response, 'lxml')
-        _parser = "_" + self.source.lower() + "_detail_parser"
-        _parser = getattr(self, _parser)
-        return _parser(soup)
+       
+        try:
+            soup = bsoup(response, 'lxml')
+            _parser = "_" + self.source.lower() + "_detail_parser"
+            _parser = getattr(self, _parser)
+            return _parser(soup)
+        except Exception as e:
+            logger.exception(e)
     
     def _parse_reviews(self, response):
-        soup = bsoup(response, 'lxml')
-        _parser = "_" + self.source.lower() + "_review_parser"
-        _parser = getattr(self, _parser)
-        return _parser(soup)
+        try:
+            soup = bsoup(response, 'lxml')
+            _parser = "_" + self.source.lower() + "_review_parser"
+            _parser = getattr(self, _parser)
+            return _parser(soup)
+        except Exception as e:
+            logger.exception(e)
     
     def _amazon_review_parser(self, soup):
         review_list = soup.find_all('div', id=re.compile('customer_review-\w+'))
@@ -65,9 +71,10 @@ class Parser(object):
         review_count = -1
         try:
             review_count = self._amazon_review_count(soup, rcount_sel_outer, rcount_sel_inner)
-        except Exception:
+        except Exception as e:
             # if we have a problem parsing the review count, then 
             # we have nothing to work with
+            logger.exception(e)
             return {}
         
         page_count = self._get_page_count(review_count, divisor=10)
@@ -105,11 +112,13 @@ class Parser(object):
         """
         Return the correct review count for the given sku.
         """
+        
         blocks = soup.select(sel_outer)
         target = None
         for block in blocks:
             if block.attrs.get("data-asin") == self.sku:
                 target = block
+
         target = target.select(sel_inner)[0].contents[0]
         if isinstance(target, unicode):
             target = target.replace(',', '')
