@@ -6,7 +6,6 @@ port: 27017
 db_name: sunbeamdb
 sent_db: test_sentencedb
 ingestion_db: test_rawfeeddb
-jobs_db: test_jobsdb
 queue_db: queuedb
 status_db: statusdb
 details_db: detailsdb
@@ -61,5 +60,5 @@ scraper:
 
 misc:
   min_review_count: 50
-  error_msg: "Other Error"
+  error_msg: "Unknown Error"
 

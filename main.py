@@ -13,7 +13,7 @@ logger = logger.Loggers(__name__).get_logger()
 config = None
 with open('config.yaml') as f:
     config = yaml.safe_load(f)
-db = DB.init_db("status_db")
+db_status = DB.init_db(config.get("status_db")).job_status
 __error__ = config.get("misc").get("error_msg")
 
 def _decode_url(url):
@@ -51,10 +51,10 @@ def vote_to_db(question, answer, sku, vote):
 
 def get_status(sku):
     res = None
+    print "========getting status for sku: ", sku
     try:
-        msg = list(db.job_status.find({"sku": sku}))[0]
+        msg = list(db_status.find({"sku": sku}))[0]
         msg = msg.get("msg")
-        # print "==in get_status======msg: ", msg, sku 
         db_details = DB.init_db(config.get("details_db")).product_details
         product = list(db_details.find({"sku": sku}))[0]
         return {
@@ -66,7 +66,7 @@ def get_status(sku):
     except IndexError as e:
         # this happens due to a race condition because the sku hasn't been
         # saved to the database yet
-        logger.error(e)
+        logger.exception(e)
         
     
 def _set_status(msg, sku):
@@ -76,11 +76,10 @@ def _set_status(msg, sku):
     :param msg: status message
     :param sku: product sku
     """
-    # print "setting status================================= ", sku, msg
     record = {"msg": msg, "sku": sku}
-    if (len(list(db.job_status.find({"sku": sku}))) == 0):
-        db.job_status.insert_one(record)
-    else: db.job_status.update_one({"sku": sku}, {"$set": {"msg": msg}})
+    if (len(list(db_status.find({"sku": sku}))) == 0):
+        db_status.insert_one(record)
+    else: db_status.update_one({"sku": sku}, {"$set": {"msg": msg}})
     
     
 def _get_product_details(source, url, sku):
@@ -90,7 +89,6 @@ def _get_product_details(source, url, sku):
     :param url: canonical product url
     :return number of reviews and product name
     """
-    # response = "DEBUGGGGGG"
     sc = scraper.Scraper(source=source)
     response = sc.get_request(url)
     pr = parser.Parser(source=source)
@@ -118,10 +116,10 @@ def get_answer(question, sku):
     Open a websocket and keep the connection alive for the duration 
     of the session so that the sku model is loaded only once. 
     """
-    time.sleep(5)
-    response = {"confidence": 0.85,
-                "question": "What is the meaning of life?",
-                "answer": 42
+    inf = inference.Inference(sku)
+    answer, confidence = inf.infer(question)
+    response = {"confidence": confidence,
+                "answer": answer,
             }
     return response
 
@@ -151,8 +149,7 @@ def _update_details_db(sku):
     """
     Update the status field of 
     """
-    db_details = DB.init_db(config.get("details_db"))
-    db_details = db_details.product_details
+    db_details = DB.init_db(config.get("details_db")).product_details
     record = {"status": "ready"}
     db_details.update_one({"sku": sku}, {"$set": record})
 
@@ -176,21 +173,21 @@ def _threaded(decoded, url):
     """
     try:
         sku = decoded[1]
-        _set_status("Gathering item details", sku)
-        parsed = _get_product_details(decoded[0], decoded[-1], sku)
-        if not parsed: 
-            """
-            Unable to parse the details page so cannot move forward.
-            """
-            _set_status(__error__, sku)
-            return
-
-        prod_name, review_count, page_count, img = parsed
-        if review_count <= config.get("misc").get("min_review_count"):
-            _set_status("Not Enough Data", sku)
-            return
-
         if not sc_helper.in_inventory(sku):
+            _set_status("Gathering item details", sku)
+            parsed = _get_product_details(decoded[0], decoded[-1], sku)
+            if not parsed: 
+                """
+                Unable to parse the details page so cannot move forward.
+                """
+                _set_status(__error__, sku)
+                return
+
+            prod_name, review_count, page_count, img = parsed
+            if review_count <= config.get("misc").get("min_review_count"):
+                _set_status("Not Enough Data", sku)
+                return
+
             _set_status("Waiting to be picked up from queue", sku)
             sc_helper.add_to_queue(decoded[0], decoded[1], parsed[-1])
             _set_status("Gathering data", sku)
@@ -207,6 +204,7 @@ def _threaded(decoded, url):
             logger.info("Finished model training")
             _update_details_db(sku)
             _set_status("Ready", sku)
+
     except Exception as e:
         logger.exception(e)
         _set_status(__error__, sku)

@@ -44,7 +44,11 @@ class Inference(Doc2VecBase):
         query_tokens = query.split()
         inference = self.d2v_model.infer_vector(query_tokens,steps=steps)
         sims = self.d2v_model.docvecs.most_similar([inference], topn=topn)
-        return self._summarize(map(lambda x: self._lookup(x[0]), sims))
+        summary = self._summarize(map(lambda x: self._lookup(x[0]), sims))
+        probs = [tup[1] for tup in sims]
+        confidence = reduce(lambda x, y: x + y, probs)/len(probs)
+        return summary, round(confidence, 2)
+    
             
     def _lookup(self, tag):
         """
@@ -79,3 +83,5 @@ class Inference(Doc2VecBase):
         
         s = " ".join(s)
         return summarize(s)
+
+    

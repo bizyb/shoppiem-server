@@ -95,8 +95,7 @@ class Scraper(object):
                 
         
         if not init and response != None:
-            # parse the reviews and save them to the database
-            # TODO: start a new thread to parse; otherwise, this will block
+            # parse the reviews and save them to the database 
             pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
             pr.parse(response.text)
 

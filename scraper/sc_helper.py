@@ -1,5 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 import db as DB
+from os import listdir
+from os.path import isfile, join
 import pymongo
 from services import logger
 import scraper
@@ -12,11 +14,21 @@ with open('config.yaml') as f:
     config = yaml.safe_load(f)
 with open('scraper/base_urls.yaml') as f:
     base_urls = yaml.safe_load(f)
-db = DB.init_db(config.get("status_db"))
 
- # logger.info("Starting data ingestion")
-    # # ingestion.ingest(raw, source)
-    # logger.info("Finished data ingestion")
+q_db = DB.init_db(config.get("queue_db")).sku_queue
+db_status = DB.init_db(config.get("status_db")).job_status
+
+def _set_status(msg, sku):
+    """
+    Update current work status.
+
+    :param msg: status message
+    :param sku: product sku
+    """
+    record = {"msg": msg, "sku": sku}
+    if (len(list(db_status.find({"sku": sku}))) == 0):
+        db_status.insert_one(record)
+    else: db_status.update_one({"sku": sku}, {"$set": {"msg": msg}})
 
 def in_inventory(sku):
     """
@@ -26,17 +38,26 @@ def in_inventory(sku):
     :param sku: product sku
     :return: whether or not the sku is in inventory
     """
+    # print "==========checking inventory=================="
+    
+
+    # is there a model available?
+    mypath = config.get("doc2vec").get("path")
+    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    # print "=======files in directory=========: ", onlyfiles
+    if sku in onlyfiles:
+        _set_status("Ready", sku)
+        return True
+
     is_in_queue = False
     is_ready = False
-    q_db = DB.init_db(config.get("queue_db"))
-    queue = list(q_db.sku_queue.find({"sku": sku}))
-    if len(queue) > 0 : is_in_queue = True 
+    queue = list(q_db.find({"sku": sku}))
+    if len(queue) > 0: is_in_queue = True 
 
-    db_job_status = DB.init_db(config.get("jobs_db"))
-    res = list(db.job_status.find({"sku": sku}))
-    if len(res) > 0 : 
-        if res[0].get("msg") == "Ready":
-            is_ready = True
+    record = {"msg": "Ready", "sku": sku}
+    res = list(db_status.find(record))
+    if len(res) > 0: is_ready = True 
+            
     return is_ready or is_in_queue
 
 def _build_urls(source, sku, page_count):
