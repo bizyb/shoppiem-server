@@ -1,4 +1,5 @@
 import db as DB
+import main
 from parser import parser
 import random
 import requests
@@ -15,6 +16,7 @@ with open('config.yaml') as f:
 with open("scraper/user_agents.yaml") as f:
     ua = yaml.safe_load(f)
 settings = config.get("scraper")
+__error__ = config.get("misc").get("error_msg")
 
 class Scraper(object):
     """
@@ -86,6 +88,11 @@ class Scraper(object):
         except Exception as e:
             msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], url)
             logger.exception(msg)
+            if init:
+                # If exception raised while parsing detail page, we're in trouble so need 
+                # to update the status of the job 
+                main._set_status(__error__, self.sku)
+                
         
         if not init and response != None:
             # parse the reviews and save them to the database
