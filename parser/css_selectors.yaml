@@ -1,5 +1,6 @@
 amazon:
-  review_count: "#acrCustomerReviewText"
+  review_count_inner: "#acrCustomerReviewText"
+  review_count_outer: "#averageCustomerReviews"
   product_name: "#productTitle"
   review_text: "a-size-base review-text"
   product_image: "#landingImage"

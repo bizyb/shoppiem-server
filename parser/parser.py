@@ -60,20 +60,26 @@ class Parser(object):
 
 
     def _amazon_detail_parser(self, soup):
-        rcount_selector = selectors.get(self.source).get("review_count")
+        rcount_sel_outer = selectors.get(self.source).get("review_count_outer")
+        rcount_sel_inner = selectors.get(self.source).get("review_count_inner")
         name_selector = selectors.get(self.source).get("product_name")
         image_selector = selectors.get(self.source).get("product_image")
+        
 
         # get review count
-        text = soup.select(rcount_selector)[0].contents[0]
-        if isinstance(text, unicode):
-            text = text.replace(',', '')
-        review_count = int(''.join(re.findall(r'\d+', text)))
+        review_count = -1
+        # try:
+        review_count = self._amazon_review_count(soup, rcount_sel_outer, rcount_sel_inner)
+        # except Exception:
+        #     # if we have a problem parsing the review count, then 
+        #     # we have nothing to work with
+        #     return {}
+        
         page_count = self._get_page_count(review_count, divisor=10)
 
-        # get product name
+        # get product name and image url
         name = soup.select(name_selector)[0].text.strip()
-        img_url = self._get_image_url(soup, image_selector)
+        img_url = self._amazon_image_url(soup, image_selector)
 
         return {"product_name": name,
                 "review_count": review_count,
@@ -88,7 +94,7 @@ class Parser(object):
 			page_count += 1
 		return page_count
     
-    def _get_image_url(self, soup, sel):
+    def _amazon_image_url(self, soup, sel):
         """
         Select the largest image and return its url.
         """
@@ -99,6 +105,23 @@ class Parser(object):
                 _max = v[0]
                 _key = k
         return _key
+    
+    def _amazon_review_count(self, soup, sel_outer, sel_inner):
+        """
+        Return the correct review count for the given sku.
+        """
+        blocks = soup.select(sel_outer)
+        target = None
+        for block in blocks:
+            if block.attrs.get("data-asin") == self.sku:
+                target = block
+        target = target.select(sel_inner)[0].contents[0]
+        if isinstance(target, unicode):
+            target = target.replace(',', '')
+        review_count = int(''.join(re.findall(r'\d+', target))) 
+        return review_count
+        
+
 
 
     
