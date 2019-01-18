@@ -16,7 +16,6 @@ cytoolz==0.9.0.1
 decorator==4.3.0
 dill==0.2.8.2
 docutils==0.14
-en-core-web-lg==2.0.0
 enum34==1.1.6
 Flask==1.0.2
 Flask-Cors==3.0.7
