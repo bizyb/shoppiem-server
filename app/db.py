@@ -14,7 +14,7 @@ def init_db(db_name):
     with open('config.yaml') as f:
         config = yaml.safe_load(f)
 
-    client = MongoClient(config['host'], config['port'])
+    client = MongoClient(config['host'], config['port'], connect=False)
     return client[db_name]
 
 

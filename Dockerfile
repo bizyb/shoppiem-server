@@ -7,6 +7,6 @@ RUN pip install -r /tmp/requirements.txt
 
 # copy over our app code
 COPY app /app
-RUN chown -R root:root /app
-RUN chmod -R 755 /app
-USER root
+# RUN chown -R root:root /app
+# RUN chmod 777 /app
+# USER root
