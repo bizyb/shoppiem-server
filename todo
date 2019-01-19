@@ -28,3 +28,11 @@ but for now, we'll load the model anew every a question is asked)
 4. Run ./start.sh inside sunbeamJS/sunbeam-app 
 5. Run ./start.sh inside sunbeam flask directory 
 6. Make sure the containers don't die when ssh terminates
+
+
+==========Security=================
+The endpoints may not be direactly reachable outside of the frontend but 
+that doesn't mean its unreachable. Anyone who can trace the route of the request 
+through the client can figure out where the backend is hosted. They may be able 
+to query the backend endpoint directly. Need to secure this by disabling requests 
+to the backend from all other IPs, except its own IP. 

@@ -100,8 +100,10 @@ class Scraper(object):
             
             if not init and response != None:
                 # parse the reviews and save them to the database 
+                logger.info("About to call review parser for url " + url)
                 pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
                 pr.parse(response.text)
+                logger.info("Parser has finished parsing (may or may not have succeeded) url " + url)
 
                 # remove it from the queue; Log the counts for some sanity check
                 logger.info("Attempting to remove from the queue: " + url)
