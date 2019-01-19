@@ -13,8 +13,10 @@ logger = logger.Loggers(__name__).get_logger()
 config = None
 with open('config.yaml') as f:
     config = yaml.safe_load(f)
+
 db_status = DB.init_db(config.get("status_db")).job_status
 __error__ = config.get("misc").get("error_msg")
+
 
 def _decode_url(url):
     """
@@ -241,13 +243,14 @@ def start(url):
     and continue with the data processing. That way, the sku status can be updated
     at the appropriate time and everyone is happy :). 
     """
+
     decoded = _decode_url(url)
     if not decoded: return {}
     
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)
-
+   
     sku = decoded[1]
     __ready__ = "Ready"
     __in_progress__ = True

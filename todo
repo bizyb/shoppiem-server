@@ -21,3 +21,4 @@ but for now, we'll load the model anew every a question is asked)
 17. Query when the sentences are too few: need to say please ask a more detailed question
 18. If detail parsing fails, attemp to scrape a few more times before giving up
 19. Favicon
+20. Mount a volume for ml models
