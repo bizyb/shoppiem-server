@@ -16,11 +16,9 @@ but for now, we'll load the model anew every a question is asked)
 14. load the same page on refresh; need to add routes
 15: all requests as POST 
 16: block multiple attempts to vote 
-17. Query when the sentences are too few: need to say please ask a more detailed question
 18. If detail parsing fails, attemp to scrape a few more times before giving up
 19. Favicon
 21. Download spacy lg version once everything works
-22. Fix scraping proxy gateway issue 
 
 
 =========================Deployment===============

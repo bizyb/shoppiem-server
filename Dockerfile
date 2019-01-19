@@ -8,6 +8,3 @@ RUN python -m spacy download en_core_web_sm
 
 # copy over our app code
 COPY app /app
-# RUN chown -R root:root /ml
-# RUN chmod -R 777 /ml
-# USER root
