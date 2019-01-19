@@ -122,6 +122,7 @@ def _is_trained(sku):
     :param sku: product sku
     :return: whether or not there is a doc2vec model
     """
+    #TODO: Always best to retrain with more data so if there are new raw reviews, retrain
     mypath = config.get("doc2vec").get("path")
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     if sku in onlyfiles:

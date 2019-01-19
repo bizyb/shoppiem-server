@@ -23,28 +23,30 @@ class Parser(object):
         self.source = source.lower()
     
     def parse(self, response, init=False):
-        if init:
-            return self._parse_detail(response)
-        self._parse_reviews(response)
+        what_for = "detail parsing"
+        if not init:
+            what_for = "review parsing"
+        logger.info("************Parser has been called for {}*****************".format(what_for))
+        try:
+            if init:
+                return self._parse_detail(response)
+            self._parse_reviews(response)
+        except Exception as e:
+            logger.exception(e)
     
     def _parse_detail(self, response):
-        try:
-            soup = bsoup(response, 'lxml')
-            _parser = "_" + self.source.lower() + "_detail_parser"
-            _parser = getattr(self, _parser)
-            return _parser(soup)
-        except Exception as e:
-            logger.exception(e)
+        soup = bsoup(response, 'lxml')
+        _parser = "_" + self.source.lower() + "_detail_parser"
+        _parser = getattr(self, _parser)
+        return _parser(soup)
+        
     
     def _parse_reviews(self, response):
-        try:
-            soup = bsoup(response, 'lxml')
-            _parser = "_" + self.source.lower() + "_review_parser"
-            _parser = getattr(self, _parser)
-            return _parser(soup)
-        except Exception as e:
-            logger.exception(e)
-    
+        soup = bsoup(response, 'lxml')
+        _parser = "_" + self.source.lower() + "_review_parser"
+        _parser = getattr(self, _parser)
+        return _parser(soup)
+        
     def _amazon_review_parser(self, soup):
         review_list = soup.find_all('div', id=re.compile('customer_review-\w+'))
         sel = selectors.get(self.source).get("review_text")

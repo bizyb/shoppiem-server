@@ -5,6 +5,7 @@ networks:
     driver: bridge
 services:
   mongodb:
+    container_name: mongodb_container
     image: 'bitnami/mongodb:latest'
     ports:
       - "27017:27017"
@@ -14,11 +15,12 @@ services:
       - mongonet
     hostname: mongodb_container
   sunbeam:
+    container_name: sunbeamflask_container
     image: 'sunbeam'
     ports:
       - "5000:80"
     volumes:
-      - /data/sunbeam/ml:/ml/models
+      - /data/sunbeam/ml:/app/ml/models
     networks:
       - mongonet
     hostname: sunbeamapp_container
