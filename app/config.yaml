@@ -1,7 +1,8 @@
 #-------------------------------------------------
 # Database  Settings
 #-------------------------------------------------
-host: "mongodb"
+host: localhost
+  # host: "mongodb"
 port: 27017
 sent_db: test_sentencedb
 ingestion_db: test_rawfeeddb
@@ -37,7 +38,8 @@ doc2vec:
   negative: 5
   alpha: 0.025
   min_alpha: 0.001
-  path: /ml/models
+  # path: /ml/models
+  path: ml/models
   inference:
     topn: 10
     steps: 100000
@@ -58,7 +60,7 @@ scraper:
     https: http://5.79.73.131:13010 
 
 misc:
-  min_review_count: 20
+  min_review_count: 1
   error_msg: "Unknown Error"
   max_title_length: 90
 

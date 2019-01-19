@@ -22,20 +22,23 @@ class Parser(object):
         self.source = source.lower()
     
     def parse(self, response, init=False):
-       
+        print "====================Parser A=================="
         if init:
             return self._parse_detail(response)
         self._parse_reviews(response)
     
     def _parse_detail(self, response):
-       
+        print "====================Parser B=================="
+        print "====================response: ", response
         try:
             soup = bsoup(response, 'lxml')
             _parser = "_" + self.source.lower() + "_detail_parser"
             _parser = getattr(self, _parser)
+            print "====================Parser C=================="
             return _parser(soup)
         except Exception as e:
             logger.exception(e)
+        print "====================Parser D=================="
     
     def _parse_reviews(self, response):
         try:
@@ -55,7 +58,8 @@ class Parser(object):
                 "product_name": self.prod_name,
                 "source": self.source,
                 "sku": self.sku,
-                "review_text": review.find('span', sel).text
+                "review_text": review.find('span', sel).text,
+                "sent_tokenized": False
             }
             raw.append(record)
         ingestion.ingest(raw)

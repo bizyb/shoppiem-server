@@ -9,6 +9,7 @@ config = None
 with open('config.yaml') as f:
     config = yaml.safe_load(f)
 db = DB.init_db(config.get("sent_db"))
+db_raw = DB.init_db(config.get("ingestion_db")).raw
 
 class NLPreprocessor:
     """
@@ -30,8 +31,8 @@ class NLPreprocessor:
         logger.info("Finished loading NLP model")
     
     def _get_data(self):
-        temp_db = DB.init_db(config.get("ingestion_db"))
-        return list(temp_db.raw.find({"sku": self.sku}))
+        return list(db_raw.find({"sku": self.sku, "sent_tokenized": False}))
+    
 
     def tokenize(self):
         """
@@ -52,6 +53,9 @@ class NLPreprocessor:
                         words.append(token.lower_)
                 if len(words) > 1: sents.append(words)
             self._save_sents(sents, doc.get("sku"), doc.get("_id"))
+            result = db_raw.update_one({"sku": sku, "_id": doc.get("_id")}, 
+                    {"$set": {"sent_tokenized": True}})
+            logger.info(result)
         logger.info("Finished document tokenization")
     
     def _save_sents(self, sent_list, sku, parent_id):
