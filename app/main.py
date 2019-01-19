@@ -104,11 +104,15 @@ def _get_product_details(source, url, sku):
     :param url: canonical product url
     :return number of reviews and product name
     """
-    
+    print "====================DEBUG A=================="
     sc = scraper.Scraper(source=source)
+    print "====================DEBUG B=================="
     response = sc.get_request(url)
+    print "====================DEBUG C=================="
     pr = parser.Parser(sku=sku, source=source)
+    print "====================DEBUG D=================="
     res = pr.parse(response, init=True)
+    print "====================DEBUG E=================="
     if res:
         # Save it to the database
         db_details = DB.init_db(config.get("details_db"))
@@ -125,7 +129,7 @@ def _get_product_details(source, url, sku):
             "timestamp": time.time(),
         }
         db_details.insert_one(record)
-
+    print "====================DEBUG F=================="
     return res
 
 def get_answer(question, sku):
@@ -193,31 +197,41 @@ def _threaded(decoded, url):
     child threads. Those operations also need to update the status before 
     exiting.
     """
+    print "====================DEBUG 2=================="
+    print "====================Calling inventory=================="
+    sku = decoded[1]
+    inventory = sc_helper.in_inventory(sku)
+    print "====================Returned from inventory=================="
     try:
-        sku = decoded[1]
-        if not sc_helper.in_inventory(sku):
+        if not inventory.get("is_ready"):
             _set_status("Gathering item details", sku)
+            print "====================DEBUG Z=================="
             parsed = _get_product_details(decoded[0], decoded[-1], sku)
+            print "====================DEBUG 3=================="
             if not parsed: 
                 """
                 Unable to parse the details page so cannot move forward.
                 """
+                print "====================DEBUG 4=================="
                 _set_status(__error__, sku)
                 return
 
             prod_name = parsed.get("product_name")
             review_count = parsed.get("review_count")
             page_count = parsed.get("page_count")
-
+            print "====================DEBUG 5=================="
             if review_count <= config.get("misc").get("min_review_count"):
                 _set_status("Not Enough Data", sku)
+                print "====================DEBUG 6=================="
                 return
-    
+            print "====================DEBUG 5=================="
             _set_status("Waiting to be picked up from queue", sku)
-            sc_helper.add_to_queue(decoded[0], decoded[1], page_count)
+            sc_helper.add_to_queue(decoded[0], decoded[1], page_count, in_queue=inventory.get("is_in_queue"))
             _set_status("Gathering data", sku)
+            print "====================DEBUG 12=================="
             sc_helper.scrape(sku, prod_name, decoded[0])
-        
+
+            print "====================DEBUG 13=================="
             _set_status("Analyzing language", sku)
             logger.info("Starting NLP preprocessing")
             preprocess.NLPreprocessor(sku).tokenize()
@@ -229,8 +243,12 @@ def _threaded(decoded, url):
             logger.info("Finished model training")
             _update_details_db(sku)
             _set_status("Ready", sku)
+        else:
+            # for debugging
+            print "====================Entered else....=================="
 
     except Exception as e:
+        print "====================DEBUG 4=================="
         logger.exception(e)
         _set_status(__error__, sku)
 
@@ -243,18 +261,23 @@ def start(url):
     and continue with the data processing. That way, the sku status can be updated
     at the appropriate time and everyone is happy :). 
     """
-
+    print "====================DEBUG -1=================="
     decoded = _decode_url(url)
     if not decoded: return {}
     
-    executor = ThreadPoolExecutor(max_workers=1)
-    executor.submit(_threaded, decoded, url)
-    executor.shutdown(wait=False)
-   
+    print "====================DEBUG 0=================="
+    _threaded(decoded, url)
+    # executor = ThreadPoolExecutor(max_workers=1)
+    # print "====================DEBUG 0.5=================="
+    # executor.submit(_threaded, decoded, url)
+    # print "====================DEBUG 0.75=================="
+    # executor.shutdown(wait=False)
+    print "====================DEBUG 1=================="
     sku = decoded[1]
     __ready__ = "Ready"
     __in_progress__ = True
     status = get_status(sku)
+    # print "====================DEBUG 1.5=================="
     if status.get("status") == __ready__: __in_progress__ = False
     response = {
                 "sku": sku, 
@@ -262,4 +285,5 @@ def start(url):
                 "in_progress": __in_progress__,
             }
     response.update(status)
+    # print "====================DEBUG 1.75=================="
     return response

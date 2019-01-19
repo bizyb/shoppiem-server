@@ -8,8 +8,6 @@ when a question is asked; we can keep the model persistently loaded for the sess
 but for now, we'll load the model anew every a question is asked)
 
 
-10. Once ready, dockerize the frontend and the backend separately 
-11. register a new domain name 
 12. deploy to aws  
 
 
@@ -21,4 +19,14 @@ but for now, we'll load the model anew every a question is asked)
 17. Query when the sentences are too few: need to say please ask a more detailed question
 18. If detail parsing fails, attemp to scrape a few more times before giving up
 19. Favicon
-20. Mount a volume for ml models
+21. Download spacy lg version once everything works
+22. Fix scraping proxy gateway issue 
+
+
+=========================Deployment===============
+1. SSH into AWS EC2 and clone the git repos 
+2. Create /data/db and /data/sunbeam/ml
+3. Change permissions to 777 on ml 
+4. Run ./start.sh inside sunbeamJS/sunbeam-app 
+5. Run ./start.sh inside sunbeam flask directory 
+6. Make sure the containers don't die when ssh terminates

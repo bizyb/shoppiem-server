@@ -29,6 +29,7 @@ class Scraper(object):
         self.prod_name = prod_name
         self.source = source.lower()
         self.user_agents = self._get_user_agents()
+        print "====================DEBUG 8=================="
         
     def _get_user_agents(self):
         """
@@ -66,7 +67,8 @@ class Scraper(object):
 
         :param init: initial request for product detail or image download
         :return response: an html response
-        ''' 
+        '''
+        print "====================DEBUG 9==================" 
         response = None
         params = {
             'headers': self._set_headers(),
@@ -76,17 +78,20 @@ class Scraper(object):
             'http': settings.get("proxies").get("http"),
             'https': settings.get("proxies").get("https"),
         }
-        
+        logger.info("About to make a request on url: " + url)
         try:
+            print "====================DEBUG 10=================="
             if not init:
                 t = self._get_duration()
                 logger.info('Throttling by {} second/s'.format(t))
                 time.sleep(t)
 
             response = requests.get(url, proxies=proxies, **params)
+            # response = requests.get(url, **params)
             msg = 'New response: status_code={} url={}'
             logger.info(msg.format(response.status_code, response.url))
         except Exception as e:
+            print "====================DEBUG 11=================="
             msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], url)
             logger.exception(msg)
             if init:

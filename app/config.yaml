@@ -37,7 +37,7 @@ doc2vec:
   negative: 5
   alpha: 0.025
   min_alpha: 0.001
-  path: ml/models
+  path: /ml/models
   inference:
     topn: 10
     steps: 100000
@@ -46,7 +46,7 @@ doc2vec:
 # Scraper parameters
 #-------------------------------------------------
 scraper:
-  thread_count: 10
+  thread_count: 6
   http_timeout: 5
   sleep_max: 5
   sleep_min: 2

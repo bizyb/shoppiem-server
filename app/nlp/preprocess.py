@@ -26,7 +26,7 @@ class NLPreprocessor:
         self.nlp = None
 
         logger.info('Loading spaCy en_core_web_lg NLP model')
-        self.nlp = spacy.load('en_core_web_lg')
+        self.nlp = spacy.load('en_core_web_sm')
         logger.info("Finished loading NLP model")
     
     def _get_data(self):

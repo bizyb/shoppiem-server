@@ -26,10 +26,14 @@ def _set_status(msg, sku):
     :param msg: status message
     :param sku: product sku
     """
+    print "====================DEBUG 102=================="
     record = {"msg": msg, "sku": sku}
     if (len(list(db_status.find({"sku": sku}))) == 0):
+        print "====================DEBUG 103=================="
         db_status.insert_one(record)
+        print "====================DEBUG 104=================="
     else: db_status.update_one({"sku": sku}, {"$set": {"msg": msg}})
+    print "====================DEBUG 105=================="
 
 def in_inventory(sku):
     """
@@ -39,24 +43,29 @@ def in_inventory(sku):
     :param sku: product sku
     :return: whether or not the sku is in inventory
     """
+    print "====================DEBUG 100=================="
 
     # is there a model available?
     mypath = config.get("doc2vec").get("path")
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     if sku in onlyfiles:
+        print "====================DEBUG 101=================="
         _set_status("Ready", sku)
         return True
 
+    print "====================DEBUG 106=================="
     is_in_queue = False
     is_ready = False
     queue = list(q_db.find({"sku": sku}))
+    print "====================DEBUG 107=================="
     if len(queue) > 0: is_in_queue = True 
 
     record = {"msg": "Ready", "sku": sku}
     res = list(db_status.find(record))
+    print "====================DEBUG 108=================="
     if len(res) > 0: is_ready = True 
-            
-    return is_ready or is_in_queue
+    print "====================DEBUG 109=================="
+    return {"is_ready": is_ready, "is_in_queue":is_in_queue}
 
 def _build_urls(source, sku, page_count):
     """
@@ -82,22 +91,24 @@ def _build_urls(source, sku, page_count):
         urls.append(review_url)
     return urls
 
-def add_to_queue(source, sku, page_count):
+def add_to_queue(source, sku, page_count, in_queue=False):
     """
     Generate review URLs and add them to the queue.
 
     :param source: merchant
     :param sku: product sku
     :param page_count: number of pages with reviews
-    """ 
-    urls = _build_urls(source, sku, page_count)
-    for url in urls:
-        record = {
-                "url": url,
-                "sku": sku,
-                "timestamp": time.time(),
-        }
-        q_db.update(record, record, upsert=True)
+    """
+    if not in_queue: 
+        urls = _build_urls(source, sku, page_count)
+        for url in urls:
+            record = {
+                    "url": url,
+                    "sku": sku,
+                    "timestamp": time.time(),
+            }
+            q_db.update(record, record, upsert=True)
+    logger.info(sku + " is already in the queue. No new URLs generated.")
     
 def scrape(sku, prod_name, source):
     """

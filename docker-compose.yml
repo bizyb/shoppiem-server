@@ -3,7 +3,6 @@ version: '3.5'
 networks:
   mongonet:
     driver: bridge
-
 services:
   mongodb:
     image: 'bitnami/mongodb:latest'
@@ -18,6 +17,8 @@ services:
     image: 'sunbeam'
     ports:
       - "5000:80"
+    volumes:
+      - /data/sunbeam/ml:/ml/models
     networks:
       - mongonet
     hostname: sunbeamapp_container

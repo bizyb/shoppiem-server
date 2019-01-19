@@ -4,9 +4,10 @@ COPY app/requirements.txt /tmp/
 # upgrade pip and install required python packages
 RUN pip install -U pip
 RUN pip install -r /tmp/requirements.txt
+RUN python -m spacy download en_core_web_sm
 
 # copy over our app code
 COPY app /app
-# RUN chown -R root:root /app
-# RUN chmod 777 /app
+# RUN chown -R root:root /ml
+# RUN chmod -R 777 /ml
 # USER root
