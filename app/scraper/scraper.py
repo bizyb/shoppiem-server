@@ -105,10 +105,10 @@ class Scraper(object):
 
                 # remove it from the queue; Log the counts for some sanity check
                 logger.info("Attempting to remove from the queue: " + url)
-                before = len(list(q_db.find({"sku": self.sku, "url": url})))
+                before = len(list(q_db.find({"sku": self.sku})))
                 q_db.delete_one({"sku": self.sku, "url": url})
-                after = len(list(q_db.find({"sku": self.sku, "url": url})))
-                logger.info("Count in db before: {} after: {}".fromat(before, after))
+                after = len(list(q_db.find({"sku": self.sku})))
+                logger.info("Count in db before: {} after: {}".format(before, after))
 
             if response:
                 logger.info("HTTP status code: " + str(response.status_code)) 
