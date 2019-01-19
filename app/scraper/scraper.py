@@ -111,7 +111,9 @@ class Scraper(object):
             logger.info("Count in db after deletion: " + str(count))
 
 
-        if response: return response.text
+        if response:
+            logger.info("HTTP status code: " + str(response.status_code)) 
+            return response.text
         
 
             

@@ -29,7 +29,7 @@ class Parser(object):
     
     def _parse_detail(self, response):
         print "====================Parser B=================="
-        print "====================response: ", response
+        # print "====================response: ", response
         try:
             soup = bsoup(response, 'lxml')
             _parser = "_" + self.source.lower() + "_detail_parser"

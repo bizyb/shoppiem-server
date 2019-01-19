@@ -3,6 +3,8 @@ from concurrent.futures import ThreadPoolExecutor
 import db as DB
 from ml import training, inference
 from nlp import preprocess
+from os import listdir
+from os.path import isfile, join
 from parser import parser
 import pymongo
 import re
@@ -30,6 +32,32 @@ operations or making duplicate http requests. The general rule is as follows:
         NLP                               | Do it again (skip if model trained)
         Training                          | Do it again (skip if model trained)
 """
+def _db_product_details(sku):
+    """
+    Return product details from the database.
+    """
+    db_details = DB.init_db(config.get("details_db")).product_details
+    product = list(db_details.find({"sku": sku}))
+    if product:
+        product_name = product[0].get("product_name")
+        product_url = product[0].get("url")
+        image_url = product[0].get("img")
+        review_count = product[0].get("review_count")
+        page_count =  product[0].get("review_page_count")
+        valid = all([product_name, product_url, image_url, review_count, page_count])
+        if valid:
+            return {
+                    "product_name": product_name,
+                    "review_count": review_count,
+                    "page_count": page_count,
+            }
+        else:
+            logger.info("Unable to validate product details for {}. Deleting entry".format(sku)) 
+            db_details.delete_one({"sku": sku})
+    return {}
+
+
+
 def _detail_parsed(sku):
     """
     Return True if the detail page of sku has been parsed. Return
@@ -38,19 +66,10 @@ def _detail_parsed(sku):
     :param sku: product sku
     :return: whether or not the product detail page has been parsed
     """
-    db_details = DB.init_db(config.get("details_db")).product_details
-    product = list(db_details.find({"sku": sku}))
-    if product: 
-        product_name = product[0].get("product_name")
-        product_url = product[0].get("url")
-        image_url = product[0].get("img")
-        review_count = product[0].get("review_count")
-        page_count =  product[0].get("page_count")
-        parsed = all([prod_name, product_url, image_url, review_count, page_count])
-        if parsed:
-            logger.info("Product detail page for " + sku + " has already been parsed")
-            return True
-    logger.info("Product detail page for " + sku + " is yet to be downloaded and parsed")
+    if _db_product_details(sku):
+        logger.info("Product detail page for {} has already been parsed".format(sku))
+        return True
+    logger.info("Product detail page for {} is yet to be downloaded and parsed".format(sku))
     return False 
 
 def _is_in_queue(sku):
@@ -230,6 +249,8 @@ def _get_product_details(source, url, sku):
             "timestamp": time.time(),
         }
         db_details.insert_one(record)
+        logger.info("Save new product details: ")
+        logger.info(record)
     print "====================DEBUG F=================="
     return res
 
@@ -300,12 +321,14 @@ def _threaded(decoded, url):
     """
     source = decoded[0]
     sku = decoded[1]
-    parsed = None
+    url = decoded[2]
+    parsed = _detail_parsed(sku)
     try:
         # Has the detail page been parsed?
-        if not _detail_parsed(sku):
+        if parsed:
+            logger.info("Detail page not available for {}. Proceeding to download...".format(sku))
             _set_status("Gathering item details", sku)
-            parsed = _get_product_details(decoded[0], decoded[-1], sku)
+            parsed = _get_product_details(source, url, sku)
             if not parsed:
                 logger.error("Error while parsing product detail page for " + sku)
                 logger.error("Aborting process")
@@ -318,7 +341,8 @@ def _threaded(decoded, url):
         
         # Do we have enough data to train on?
         if review_count <= config.get("misc").get("min_review_count"):
-            logger.warning("Not enough reviews for " + sku ". Aborting process")
+            logger.warning("Not enough reviews for " + sku)
+            logger.error("Aborting process")
             _set_status("Not Enough Data", sku)
             return
 
@@ -332,7 +356,7 @@ def _threaded(decoded, url):
         # If it's in the queue, scrape it 
         if _is_in_queue(sku):
             logger.info(sku + " is in the queue. Launching the scraper")
-             _set_status("Gathering data", sku)
+            _set_status("Gathering data", sku)
             sc_helper.scrape(sku, prod_name, source)
         
         # If it hasn't been preprocessed, do it

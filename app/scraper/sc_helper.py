@@ -1,7 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
 import db as DB
-from os import listdir
-from os.path import isfile, join
 import pymongo
 from services import logger
 import scraper
