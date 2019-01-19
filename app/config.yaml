@@ -33,7 +33,7 @@ merchants:
 doc2vec:
   vector_size: 100
   epochs: 20
-  min_count: 50
+  min_count: 1
   dm: 0
   negative: 5
   alpha: 0.025

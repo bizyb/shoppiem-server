@@ -29,7 +29,7 @@ class Scraper(object):
         self.prod_name = prod_name
         self.source = source.lower()
         self.user_agents = self._get_user_agents()
-        logger.info("============ Scraper has been instantiated ============")
+        logger.info("**************Scraper has been instantiated**************")
         
     def _get_user_agents(self):
         """
@@ -86,7 +86,7 @@ class Scraper(object):
                     time.sleep(t)
 
                 response = requests.get(url, proxies=proxies, **params)
-                # response = requests.get(url, **params)
+                # response = requests.get(url, **params) # Enable when debugging
                 msg = 'New response: status_code={} url={}'
                 logger.info(msg.format(response.status_code, response.url))
             except Exception as e:
@@ -105,16 +105,15 @@ class Scraper(object):
 
                 # remove it from the queue; Log the counts for some sanity check
                 logger.info("Attempting to remove from the queue: " + url)
-                count = len(list(q_db.find({"sku": self.sku, "url": url})))
-                logger.info("Count in db before deletion: " + str(count))
+                before = len(list(q_db.find({"sku": self.sku, "url": url})))
                 q_db.delete_one({"sku": self.sku, "url": url})
-                count = len(list(q_db.find({"sku": self.sku, "url": url})))
-                logger.info("Count in db after deletion: " + str(count))
+                after = len(list(q_db.find({"sku": self.sku, "url": url})))
+                logger.info("Count in db before: {} after: {}".fromat(before, after))
 
             if response:
                 logger.info("HTTP status code: " + str(response.status_code)) 
                 return response.text
-                
+
         except Exception as e:
             msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], url)
             logger.exception(msg)

@@ -171,7 +171,6 @@ def vote_to_db(question, answer, sku, vote):
     }
     db_votes.insert_one(record)
 
-
 def get_status(sku):
     res = None
     try:
@@ -219,15 +218,10 @@ def _get_product_details(source, url, sku):
     :param url: canonical product url
     :return number of reviews and product name
     """
-    print "====================DEBUG A=================="
     sc = scraper.Scraper(source=source)
-    print "====================DEBUG B=================="
     response = sc.get_request(url)
-    print "====================DEBUG C=================="
     pr = parser.Parser(sku=sku, source=source)
-    print "====================DEBUG D=================="
     res = pr.parse(response, init=True)
-    print "====================DEBUG E=================="
     if res:
         # Save it to the database
         db_details = DB.init_db(config.get("details_db"))
@@ -246,7 +240,6 @@ def _get_product_details(source, url, sku):
         db_details.insert_one(record)
         logger.info("Save new product details: ")
         logger.info(record)
-    print "====================DEBUG F=================="
     return res
 
 def get_answer(question, sku):
@@ -359,7 +352,7 @@ def _threaded(decoded, url):
         
         # If it hasn't been trained, train it
         if not _is_trained(sku):
-            _nlp_reset(sku):
+            _nlp_reset(sku)
             logger.info("Starting NLP preprocessing")
             _set_status("Analyzing language", sku)
             preprocess.NLPreprocessor(sku).tokenize()

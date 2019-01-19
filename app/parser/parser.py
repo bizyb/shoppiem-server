@@ -16,29 +16,25 @@ class Parser(object):
     """
     # TODO: parse the image url, download the image in a separate thread, and save it to S3
     #TODO: do image downloading and uploading in the background after the model has been trained with celery
+    #TODO: parse product breadcrumb 
     def __init__(self, sku=None, prod_name=None, source=None):
         self.sku = sku 
         self.prod_name = prod_name
         self.source = source.lower()
     
     def parse(self, response, init=False):
-        print "====================Parser A=================="
         if init:
             return self._parse_detail(response)
         self._parse_reviews(response)
     
     def _parse_detail(self, response):
-        print "====================Parser B=================="
-        # print "====================response: ", response
         try:
             soup = bsoup(response, 'lxml')
             _parser = "_" + self.source.lower() + "_detail_parser"
             _parser = getattr(self, _parser)
-            print "====================Parser C=================="
             return _parser(soup)
         except Exception as e:
             logger.exception(e)
-        print "====================Parser D=================="
     
     def _parse_reviews(self, response):
         try:

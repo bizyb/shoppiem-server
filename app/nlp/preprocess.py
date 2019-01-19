@@ -31,9 +31,8 @@ class NLPreprocessor:
         logger.info("Finished loading NLP model")
     
     def _get_data(self):
-        return list(db_raw.find({"sku": self.sku))
+        return list(db_raw.find({"sku": self.sku}))
     
-
     def tokenize(self):
         """
         Tokenize reviews into sentences and save them to the database.
@@ -53,9 +52,8 @@ class NLPreprocessor:
                         words.append(token.lower_)
                 if len(words) > 1: sents.append(words)
             self._save_sents(sents, doc.get("sku"), doc.get("_id"))
-            result = db_raw.update_one({"sku": sku, "_id": doc.get("_id")}, 
+            db_raw.update_one({"sku": self.sku, "_id": doc.get("_id")}, 
                     {"$set": {"sent_tokenized": True}})
-            logger.info(result)
         logger.info("Finished document tokenization")
     
     def _save_sents(self, sent_list, sku, parent_id):
