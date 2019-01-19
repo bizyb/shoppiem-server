@@ -238,7 +238,7 @@ def _get_product_details(source, url, sku):
             "timestamp": time.time(),
         }
         db_details.insert_one(record)
-        logger.info("Save new product details: ")
+        logger.info("Saved new product details: ")
         logger.info(record)
     return res
 
