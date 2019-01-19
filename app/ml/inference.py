@@ -10,6 +10,7 @@ config = None
 with open('config.yaml') as f:
     config = yaml.safe_load(f)
 db = DB.init_db(config.get("sent_db"))
+__default_answer__ = "Hmm...didn't undestand that. Could you try rephrasing it?"
 
 class Inference(Doc2VecBase):
     """
@@ -35,7 +36,8 @@ class Inference(Doc2VecBase):
         param query: an enriched query
         return sents: a list of inferred sentences 
         '''
-        
+        #TODO: validate the query is a valid statement
+
         steps = config.get("doc2vec").get("inference").get("steps") 
         topn = config.get("doc2vec").get("inference").get("topn")
 
@@ -46,6 +48,9 @@ class Inference(Doc2VecBase):
         summary = self._summarize(map(lambda x: self._lookup(x[0]), sims))
         probs = [tup[1] for tup in sims]
         confidence = reduce(lambda x, y: x + y, probs)/len(probs)
+        if not summary: 
+            summary = __default_answer__
+            confidence = 0.00
         return summary, round(confidence, 2)
     
             
