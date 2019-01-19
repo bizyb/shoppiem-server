@@ -102,21 +102,16 @@ def _reviews_scraped(sku):
     logger.info(sku + " has neither been parsed nor ingested")
     return False 
      
-def _nlp_done(sku):
+def _nlp_reset(sku):
     """
-    Return True if the raw reviews have been processed and tokenized into 
-    sentences. Return False otherwise.
+    Clear the database of any existing sentences for sku.
 
     :param sku: product sku
-    :return: whether or not all the reviews have been sent-tokenized
     """ 
-    db_raw = DB.init_db(config.get("ingestion_db")).raw
-    feed = list(db_raw.find({sku: sku, "sent_tokenized": False}))
-    if len(feed) > 0:
-        logger.info(sku + " has untokenized reviews. Initiate NLP preprocessing")
-        return False 
-    logger.info(sku + " does not have untokenized reviews")
-    return True
+    db_sents = DB.init_db(config.get("sent_db")).sentences
+    db_sents.delete_many({"sku": sku})
+    logger.info("Cleared sentence table for " + sku)
+    
      
 
 def _is_trained(sku):
@@ -322,10 +317,10 @@ def _threaded(decoded, url):
     source = decoded[0]
     sku = decoded[1]
     url = decoded[2]
-    parsed = _detail_parsed(sku)
+    parsed = _db_product_details(sku)
     try:
         # Has the detail page been parsed?
-        if parsed:
+        if not parsed:
             logger.info("Detail page not available for {}. Proceeding to download...".format(sku))
             _set_status("Gathering item details", sku)
             parsed = _get_product_details(source, url, sku)
@@ -334,6 +329,8 @@ def _threaded(decoded, url):
                 logger.error("Aborting process")
                 _set_status(__error__, sku)
                 return 
+        else:
+            logger.info("Detail page for {} already parsed. Skipping download...".format(sku))
         
         prod_name = parsed.get("product_name")
         review_count = parsed.get("review_count")
@@ -359,15 +356,15 @@ def _threaded(decoded, url):
             _set_status("Gathering data", sku)
             sc_helper.scrape(sku, prod_name, source)
         
-        # If it hasn't been preprocessed, do it
-        if not _nlp_done(sku):
+        
+        # If it hasn't been trained, train it
+        if not _is_trained(sku):
+            _nlp_reset(sku):
             logger.info("Starting NLP preprocessing")
             _set_status("Analyzing language", sku)
             preprocess.NLPreprocessor(sku).tokenize()
             logger.info("Finished NLP preprocessing")
-        
-        # If it hasn't been trained, train it
-        if not _is_trained(sku):
+
             logger.info("Starting model trianing")
             _set_status("Building knowledge base", sku)
             d2v = training.Document2Vector(sku).train()
@@ -391,7 +388,7 @@ def start(url):
     
     decoded = _decode_url(url)
     if not decoded: return {}
-    
+    # _threaded(decoded, url) # Enable when debugging
     executor = ThreadPoolExecutor(max_workers=1)
     executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)

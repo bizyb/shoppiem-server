@@ -31,7 +31,7 @@ class NLPreprocessor:
         logger.info("Finished loading NLP model")
     
     def _get_data(self):
-        return list(db_raw.find({"sku": self.sku, "sent_tokenized": False}))
+        return list(db_raw.find({"sku": self.sku))
     
 
     def tokenize(self):

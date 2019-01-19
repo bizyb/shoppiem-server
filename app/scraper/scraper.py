@@ -68,52 +68,57 @@ class Scraper(object):
         :param init: initial request for product detail or image download
         :return response: an html response
         '''
-        response = None
-        params = {
-            'headers': self._set_headers(),
-            'timeout': settings.get("http_timeout"),
-        }
-        proxies = {
-            'http': settings.get("proxies").get("http"),
-            'https': settings.get("proxies").get("https"),
-        }
-        logger.info("About to make a request on url: " + url)
         try:
-            if not init:
-                t = self._get_duration()
-                logger.info('Throttling by {} second/s'.format(t))
-                time.sleep(t)
+            response = None
+            params = {
+                'headers': self._set_headers(),
+                'timeout': settings.get("http_timeout"),
+            }
+            proxies = {
+                'http': settings.get("proxies").get("http"),
+                'https': settings.get("proxies").get("https"),
+            }
+            logger.info("About to make a request on url: " + url)
+            try:
+                if not init:
+                    t = self._get_duration()
+                    logger.info('Throttling by {} second/s'.format(t))
+                    time.sleep(t)
 
-            response = requests.get(url, proxies=proxies, **params)
-            # response = requests.get(url, **params)
-            msg = 'New response: status_code={} url={}'
-            logger.info(msg.format(response.status_code, response.url))
+                response = requests.get(url, proxies=proxies, **params)
+                # response = requests.get(url, **params)
+                msg = 'New response: status_code={} url={}'
+                logger.info(msg.format(response.status_code, response.url))
+            except Exception as e:
+                msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], url)
+                logger.exception(msg)
+                if init:
+                    # If exception raised while parsing detail page, we're in trouble so need 
+                    # to update the status of the job 
+                    main._set_status(__error__, self.sku)
+                    
+            
+            if not init and response != None:
+                # parse the reviews and save them to the database 
+                pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
+                pr.parse(response.text)
+
+                # remove it from the queue; Log the counts for some sanity check
+                logger.info("Attempting to remove from the queue: " + url)
+                count = len(list(q_db.find({"sku": self.sku, "url": url})))
+                logger.info("Count in db before deletion: " + str(count))
+                q_db.delete_one({"sku": self.sku, "url": url})
+                count = len(list(q_db.find({"sku": self.sku, "url": url})))
+                logger.info("Count in db after deletion: " + str(count))
+
+            if response:
+                logger.info("HTTP status code: " + str(response.status_code)) 
+                return response.text
+                
         except Exception as e:
             msg = '{}: {} url={}'.format(type(e).__name__, e.args[0], url)
             logger.exception(msg)
-            if init:
-                # If exception raised while parsing detail page, we're in trouble so need 
-                # to update the status of the job 
-                main._set_status(__error__, self.sku)
-                
-        
-        if not init and response != None:
-            # parse the reviews and save them to the database 
-            pr = parser.Parser(sku=self.sku, prod_name=self.prod_name, source=self.source)
-            pr.parse(response.text)
 
-            # remove it from the queue
-            logger.info("Attempting to remove from the queue: " + url)
-            count = len(list(q_db.find({"sku": sku, "url": url})))
-            logger.info("Count in db before deletion: " + str(count))
-            q_db.delete_one({"sku": sku, "url": url})
-            count = len(list(q_db.find({"sku": sku, "url": url})))
-            logger.info("Count in db after deletion: " + str(count))
-
-
-        if response:
-            logger.info("HTTP status code: " + str(response.status_code)) 
-            return response.text
         
 
             

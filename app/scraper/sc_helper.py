@@ -122,7 +122,8 @@ def scrape(sku, prod_name, source):
         sc = scraper.Scraper(sku, prod_name, source)
         for url in urls:
             url = url.get("url")
-            executor.submit(sc.get_request, url, init=False)
+            # sc.get_request(url, init=False) # Enable when debugging
+            executor.submit(sc.get_request, url, init=False) # Disable when debugging
 
 
 
