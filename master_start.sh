@@ -1,11 +1,8 @@
-cd ~
-mkdir data
-mkdir data/db
-mkdir data/sunbeam
-mkdir data/sunbeam/ml
-chmod 777 data/sunbeam/ml
+sudo mkdir /data
+sudo mkdir /data/db
+sudo chown $USER:$USER /data/db
 
-sudo apt-get update
-sudo apt-get install -y docker-ce
-sudo usermod -aG docker $USER
-
+mkdir /data/sunbeam
+sudo chown $USER:$USER /data/sunbeam
+sudo mkdir /data/sunbeam/ml
+chmod 777 /data/sunbeam/ml
