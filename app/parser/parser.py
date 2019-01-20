@@ -33,6 +33,7 @@ class Parser(object):
             self._parse_reviews(response)
         except Exception as e:
             logger.exception(e)
+        logger.info("************parser exiting...*****************")
     
     def _parse_detail(self, response):
         soup = bsoup(response, 'lxml')
