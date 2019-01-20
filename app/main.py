@@ -192,7 +192,7 @@ def get_status(sku):
             "product_url": product_url,
             "image_url": image_url,
         }
-    except IndexError::
+    except IndexError:
         # this happens due to a race condition because the sku hasn't been
         # added to the database yet
         logger.warning("Product status not yet available")
