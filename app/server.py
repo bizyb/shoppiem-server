@@ -7,7 +7,7 @@ CORS(app)
 @app.route("/search", methods=["GET"])
 def search():
 
-    json = request.json.get('url')
+    #json = request.json.get('url')
     q = request.args.get("q")
     json = q
     if not json: return jsonify({})

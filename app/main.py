@@ -308,66 +308,79 @@ def _threaded(decoded, url):
     child threads. Those operations also need to update the status before 
     exiting.
     """
+    print "==========================================Debug 1"
+    logger.info("Running a new thread for scraping and data processing")
     source = decoded[0]
     sku = decoded[1]
     url = decoded[2]
     parsed = _db_product_details(sku)
+    print "==========================================Debug 2"
     _set_status("Gathering data", sku)
     try:
         # Has the detail page been parsed?
         if not parsed:
+            print "==========================================Debug 3"
             logger.info("Detail page not available for {}. Proceeding to download...".format(sku))
             parsed = _get_product_details(source, url, sku)
             if not parsed:
+                print "==========================================Debug 4"
                 logger.error("Error while parsing product detail page for " + sku)
                 logger.error("Aborting process")
                 _set_status(__error__, sku)
                 return 
         else:
+            print "==========================================Debug 5"
             logger.info("Detail page for {} already parsed. Skipping download...".format(sku))
-        
+        print "==========================================Debug 6"
         prod_name = parsed.get("product_name")
         review_count = parsed.get("review_count")
         page_count = parsed.get("page_count")
         
         # Do we have enough data to train on?
         if review_count <= config.get("misc").get("min_review_count"):
+            print "==========================================Debug 7"
             logger.warning("Not enough reviews for " + sku)
             logger.error("Aborting process")
             _set_status("Not Enough Data", sku)
             return
-
+        print "==========================================Debug 8"
         # If it's not in the queue, add it
         if not _is_in_queue(sku):
+            print "==========================================Debug 9"
             logger.info(sku + " not in queue. Checking if it's been scraped before")
             if not _reviews_scraped(sku):
+                print "==========================================Debug 10"
                 logger.info(sku + " has not been scraped. Adding to the queue...")
                 sc_helper.add_to_queue(source, sku, page_count)
-
+        print "==========================================Debug 11"
         # If it's in the queue, scrape it 
         if _is_in_queue(sku):
+            print "==========================================Debug 12"
             logger.info(sku + " is in the queue. Launching the scraper")
             sc_helper.scrape(sku, prod_name, source)
         
-        
+        print "==========================================Debug 13"
         # If it hasn't been trained, train it
         if not _is_trained(sku):
+            print "==========================================Debug 14"
             _nlp_reset(sku)
             logger.info("Starting NLP preprocessing")
             _set_status("Analyzing language", sku)
             preprocess.NLPreprocessor(sku).tokenize()
             logger.info("Finished NLP preprocessing")
-
+            print "==========================================Debug 15"
             logger.info("Starting model trianing")
             _set_status("Building knowledge base", sku)
             d2v = training.Document2Vector(sku).train()
             logger.info("Finished model training")
             _update_details_db(sku)
             _set_status("Ready", sku)
-          
+            print "==========================================Debug 16"
     except Exception as e:
+        print "==========================================Debug 17"
         logger.exception(e)
         _set_status(__error__, sku)
+    print "==========================================Debug 18"
 
 
 def start(url):
@@ -378,14 +391,16 @@ def start(url):
     and continue with the data processing. That way, the sku status can be updated
     at the appropriate time and everyone is happy :). 
     """
+    print "==========================================Debug A"
     logger.info("Received new url to process: {}".format(url))
     decoded = _decode_url(url)
     if not decoded: return {}
+    print "==========================================Debug B"
     # _threaded(decoded, url) # Enable when debugging
     executor = ThreadPoolExecutor(max_workers=10)
     executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)
-
+    print "==========================================Debug C"
     sku = decoded[1]
     __in_progress__ = True
     status = get_status(sku)
@@ -396,4 +411,5 @@ def start(url):
                 "in_progress": __in_progress__,
             }
     response.update(status)
+    print "==========================================Debug D"
     return response
