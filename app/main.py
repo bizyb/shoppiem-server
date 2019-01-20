@@ -378,11 +378,11 @@ def start(url):
     and continue with the data processing. That way, the sku status can be updated
     at the appropriate time and everyone is happy :). 
     """
-    
+    logger.info("Received new url to process: {}".format(url))
     decoded = _decode_url(url)
     if not decoded: return {}
     # _threaded(decoded, url) # Enable when debugging
-    executor = ThreadPoolExecutor(max_workers=1)
+    executor = ThreadPoolExecutor(max_workers=10)
     executor.submit(_threaded, decoded, url)
     executor.shutdown(wait=False)
 
