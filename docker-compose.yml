@@ -10,7 +10,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - /User/$USER/data/db:/bitnami
+      - /data/db:/bitnami
     networks:
       - mongonet
     hostname: mongodb_container
@@ -20,7 +20,7 @@ services:
     ports:
       - "5000:80"
     volumes:
-      - /User/$USER/data/sunbeam/ml:/app/ml/models
+      - /data/sunbeam/ml:/app/ml/models
     networks:
       - mongonet
     hostname: sunbeamapp_container
