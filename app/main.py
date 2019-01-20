@@ -312,11 +312,11 @@ def _threaded(decoded, url):
     sku = decoded[1]
     url = decoded[2]
     parsed = _db_product_details(sku)
+    _set_status("Gathering data", sku)
     try:
         # Has the detail page been parsed?
         if not parsed:
             logger.info("Detail page not available for {}. Proceeding to download...".format(sku))
-            _set_status("Gathering item details", sku)
             parsed = _get_product_details(source, url, sku)
             if not parsed:
                 logger.error("Error while parsing product detail page for " + sku)
@@ -347,7 +347,6 @@ def _threaded(decoded, url):
         # If it's in the queue, scrape it 
         if _is_in_queue(sku):
             logger.info(sku + " is in the queue. Launching the scraper")
-            _set_status("Gathering data", sku)
             sc_helper.scrape(sku, prod_name, source)
         
         
