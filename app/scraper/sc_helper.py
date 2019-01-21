@@ -72,8 +72,8 @@ def scrape(sku, prod_name, source):
         sc = scraper.Scraper(sku, prod_name, source)
         for url_obj in url_objs: 
             url = url_obj.get("url")
-            sc.get_request(url, init=False) # Enable when debugging
-            #executor.submit(sc.get_request, url, init=False) # Disable when debugging
+            #sc.get_request(url, init=False) # Enable when debugging
+            executor.submit(sc.get_request, url, init=False) # Disable when debugging
 
 
 
