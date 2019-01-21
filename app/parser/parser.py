@@ -36,6 +36,7 @@ class Parser(object):
         logger.info("************parser exiting...*****************")
     
     def _parse_detail(self, response):
+        logger.info("About to parse the product detail page for {} from {}".format(self.sku, self.source))
         soup = bsoup(response, 'lxml')
         _parser = "_" + self.source.lower() + "_detail_parser"
         _parser = getattr(self, _parser)
@@ -43,6 +44,7 @@ class Parser(object):
         
     
     def _parse_reviews(self, response):
+        logger.info("About to parse reviews for {} from {}".format(self.sku, self.source))
         soup = bsoup(response, 'lxml')
         _parser = "_" + self.source.lower() + "_review_parser"
         _parser = getattr(self, _parser)
@@ -62,9 +64,11 @@ class Parser(object):
             }
             raw.append(record)
         ingestion.ingest(raw)
+        logger.info("Finished parsing single-page reviews for {} from {}".format(self.sku, self.source))
 
 
     def _amazon_detail_parser(self, soup):
+        logger.info("Started parsing Amazon product detail page for {}".format(self.sku))
         rcount_sel_outer = selectors.get(self.source).get("review_count_outer")
         rcount_sel_inner = selectors.get(self.source).get("review_count_inner")
         name_selector = selectors.get(self.source).get("product_name")
@@ -85,7 +89,7 @@ class Parser(object):
         # get product name and image url
         name = soup.select(name_selector)[0].text.strip()
         img_url = self._amazon_image_url(soup, image_selector)
-
+        logger.info("Finished parsing Amazon product detail page for {}".format(self.sku))
         return {"product_name": name,
                 "review_count": review_count,
                 "page_count": page_count,
