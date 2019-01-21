@@ -26,14 +26,12 @@ class Parser(object):
         what_for = "detail parsing"
         if not init:
             what_for = "review parsing"
-        logger.info("************Parser has been called for {}*****************".format(what_for))
         try:
             if init:
                 return self._parse_detail(response)
             self._parse_reviews(response)
         except Exception as e:
             logger.exception(e)
-        logger.info("************parser exiting...*****************")
     
     def _parse_detail(self, response):
         logger.info("About to parse the product detail page for {} from {}".format(self.sku, self.source))
