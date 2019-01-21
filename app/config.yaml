@@ -1,8 +1,8 @@
 #-------------------------------------------------
 # Database  Settings
 #-------------------------------------------------
-host: localhost
-# host: "mongodb"
+#host: localhost
+host: "mongodb"
 port: 27017
 sent_db: test_sentencedb
 ingestion_db: test_rawfeeddb
@@ -59,7 +59,7 @@ scraper:
     https: http://5.79.73.131:13010 
 
 misc:
-  min_review_count: 30
+  min_review_count: 20
   error_msg: "Unknown Error"
   max_title_length: 90
 
