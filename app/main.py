@@ -196,24 +196,25 @@ def get_status(sku):
         msg = msg.get("msg")
         db_details = DB.init_db(config.get("details_db")).product_details
         product = list(db_details.find({"sku": sku}))
-        product_url = ""
-        product_name = ""
-        image_url = ""
+        product_url, product_name, image_url, sku = "", "", "", ""
         if product: 
             product_name = product[0].get("product_name")
             product_url = product[0].get("url")
             image_url = product[0].get("img")
+            sku = product[0].get("sku")
+        logger.info("Status for {} is {}".format(sku, msg))
         return {
             "status": msg,
             "product_name": product_name,
             "product_url": product_url,
             "image_url": image_url,
+            "sku": sku,
         }
     except IndexError:
         # this happens due to a race condition because the sku hasn't been
         # added to the database yet
-        # logger.warning("Product status not yet available")
-        pass
+        logger.warning("Product status not yet available")
+        # pass
     return {}
         
     
@@ -401,7 +402,7 @@ def _threaded(decoded, url):
     print "==========================================Debug 18"
 
 
-def start(url):
+def start(url, progress=False):
     """
     Initiate scraping, parsing, data ingestion, preprocessing, 
     and training. Note that this is a blocking call. Flask will wait on start(). 
@@ -409,25 +410,29 @@ def start(url):
     and continue with the data processing. That way, the sku status can be updated
     at the appropriate time and everyone is happy :). 
     """
+    print "==========MAIN START IS SLEEPING============"
+    # time.sleep(30)
     print "==========================================Debug A"
     logger.info("Received new url to process: {}".format(url))
     decoded = _decode_url(url)
     if not decoded: return {}
     print "==========================================Debug B"
-    _threaded(decoded, url) # Enable when debugging
-    #executor = ThreadPoolExecutor(max_workers=1)
-    #executor.submit(_threaded, decoded, url)
-    #executor.shutdown(wait=False)
-    print "==========================================Debug C"
-    sku = decoded[1]
-    __in_progress__ = True
-    status = get_status(sku)
-    if status.get("status") == __ready__: __in_progress__ = False
-    response = {
-                "sku": sku, 
-                "product_url": decoded[2], 
-                "in_progress": __in_progress__,
-            }
-    response.update(status)
-    print "==========================================Debug D"
-    return response
+    if progress:
+        print "==========================================Debug C"
+        sku = decoded[1]
+        __in_progress__ = True
+        status = get_status(sku)
+        if status.get("status") == __ready__: __in_progress__ = False
+        response = {
+                    "sku": sku, 
+                    "product_url": decoded[2], 
+                    "in_progress": __in_progress__,
+                }
+        response.update(status)
+        print "==========================================Debug D"
+        return response
+    else:
+        _threaded(decoded, url) # Enable when debugging
+        #executor = ThreadPoolExecutor(max_workers=1)
+        #executor.submit(_threaded, decoded, url)
+        #executor.shutdown(wait=False)
