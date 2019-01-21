@@ -8,13 +8,9 @@ when a question is asked; we can keep the model persistently loaded for the sess
 but for now, we'll load the model anew every a question is asked)
 
 
-12. deploy to aws  
-
-
 13. Have a default avatar for missing image 
 
-14. load the same page on refresh; need to add routes
-15: all requests as POST 
+14. load the same page on refresh; need to add routes 
 16: block multiple attempts to vote 
 18. If detail parsing fails, attemp to scrape a few more times before giving up
 19. Favicon
@@ -35,4 +31,8 @@ The endpoints may not be direactly reachable outside of the frontend but
 that doesn't mean its unreachable. Anyone who can trace the route of the request 
 through the client can figure out where the backend is hosted. They may be able 
 to query the backend endpoint directly. Need to secure this by disabling requests 
-to the backend from all other IPs, except its own IP. 
+to the backend from all other IPs, except its own IP.
+
+
+
+
