@@ -310,7 +310,7 @@ def _update_details_db(sku):
     db_details.update_one({"sku": sku}, {"$set": record})
 
 
-def _threaded(decoded, url):
+def _workflof(decoded, url):
     """
     Run the whole data scraping, processing, and analysis in new threads.
     Each thread, beginning with this one, will make its calls in a try-except
@@ -432,7 +432,7 @@ def start(url, progress=False):
         print "==========================================Debug D"
         return response
     else:
-        _threaded(decoded, url) # Enable when debugging
+        _workflof(decoded, url) # Enable when debugging
         #executor = ThreadPoolExecutor(max_workers=1)
         #executor.submit(_threaded, decoded, url)
         #executor.shutdown(wait=False)
