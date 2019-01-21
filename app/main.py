@@ -1,5 +1,4 @@
 import time
-from concurrent.futures import ThreadPoolExecutor
 import db as DB
 from ml import training, inference
 from nlp import preprocess
@@ -36,10 +35,8 @@ def _db_product_details(sku):
     """
     Return product details from the database.
     """
-    print "==========================================Debug 20"
     db_details = DB.init_db(config.get("details_db")).product_details
     product = list(db_details.find({"sku": sku}))
-    print "==========================================Debug 21"
     if product:
         product_name = product[0].get("product_name")
         product_url = product[0].get("url")
@@ -48,17 +45,14 @@ def _db_product_details(sku):
         page_count =  product[0].get("review_page_count")
         valid = all([product_name, product_url, image_url, review_count, page_count])
         if valid:
-            print "==========================================Debug 22"
             return {
                     "product_name": product_name,
                     "review_count": review_count,
                     "page_count": page_count,
             }
         else:
-            print "==========================================Debug 23"
             logger.info("Unable to validate product details for {}. Deleting entry".format(sku)) 
             db_details.delete_one({"sku": sku})
-    print "==========================================Debug 24"
     return {}
 
 
@@ -71,12 +65,9 @@ def _detail_parsed(sku):
     :param sku: product sku
     :return: whether or not the product detail page has been parsed
     """
-    print "==========================================Debug 25"
     if _db_product_details(sku):
-        print "==========================================Debug 26"
         logger.info("Product detail page for {} has already been parsed".format(sku))
         return True
-    print "==========================================Debug 27"
     logger.info("Product detail page for {} is yet to be downloaded and parsed".format(sku))
     return False 
 
@@ -87,14 +78,11 @@ def _is_in_queue(sku):
     :param sku: product sku
     :return: whether or not there are review urls in queue
     """
-    print "==========================================Debug 28"
     db_q = DB.init_db(config.get("queue_db")).queue
     queue = list(db_q.find({"sku": sku}))
-    print "==========================================Debug 29"
     if len(queue) > 0: 
         logger.info(sku + " is already in the queue")
         return True 
-    print "==========================================Debug 30"
     return False
 
 def _reviews_scraped(sku):
@@ -104,10 +92,8 @@ def _reviews_scraped(sku):
     :param sku: product sku
     :return: whether or not the reviews have been scraped+parsed+ingested
     """
-    print "==========================================Debug 32"
     db_raw = DB.init_db(config.get("ingestion_db")).raw 
     feed = list(db_raw.find({"sku": sku}))
-    print "==========================================Debug 32"
     if len(feed) > 0:
         logger.info(sku + " reviews have been parsed and ingested")
         return True
@@ -120,13 +106,9 @@ def _nlp_reset(sku):
 
     :param sku: product sku
     """ 
-    print "==========================================Debug 33"
     db_sents = DB.init_db(config.get("sent_db")).sentences
     db_sents.delete_many({"sku": sku})
     logger.info("Cleared sentence table for " + sku)
-    print "==========================================Debug 34"
-    
-     
 
 def _is_trained(sku):
     """
@@ -136,16 +118,13 @@ def _is_trained(sku):
     :param sku: product sku
     :return: whether or not there is a doc2vec model
     """
-    print "==========================================Debug 35"
     #TODO: Always best to retrain with more data so if there are new raw reviews, retrain
     mypath = config.get("doc2vec").get("path")
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     if sku in onlyfiles:
-        print "==========================================Debug 36"
         _set_status(__ready__, sku)
         logger.info(sku + " has a trained model")
         return True 
-    print "==========================================Debug 37"
     logger.info(sku + " does not have a trained model. Start training")
     return False 
 
@@ -327,79 +306,61 @@ def _workflof(decoded, url):
     child threads. Those operations also need to update the status before 
     exiting.
     """
-    print "==========================================Debug 1"
     logger.info("Running a new thread for scraping and data processing")
     source = decoded[0]
     sku = decoded[1]
     url = decoded[2]
     parsed = _db_product_details(sku)
-    print "==========================================Debug 2"
     _set_status("Gathering data", sku)
     try:
         # Has the detail page been parsed?
         if not parsed:
-            print "==========================================Debug 3"
             logger.info("Detail page not available for {}. Proceeding to download...".format(sku))
             parsed = _get_product_details(source, url, sku)
             if not parsed:
-                print "==========================================Debug 4"
                 logger.error("Error while parsing product detail page for " + sku)
                 logger.error("Aborting process")
                 _set_status(__error__, sku)
                 return 
         else:
-            print "==========================================Debug 5"
             logger.info("Detail page for {} already parsed. Skipping download...".format(sku))
-        print "==========================================Debug 6"
         prod_name = parsed.get("product_name")
         review_count = parsed.get("review_count")
         page_count = parsed.get("page_count")
         
         # Do we have enough data to train on?
         if review_count <= config.get("misc").get("min_review_count"):
-            print "==========================================Debug 7"
             logger.warning("Not enough reviews for " + sku)
             logger.error("Aborting process")
             _set_status("Not Enough Data", sku)
             return
-        print "==========================================Debug 8"
         # If it's not in the queue, add it
         if not _is_in_queue(sku):
-            print "==========================================Debug 9"
             logger.info(sku + " not in queue. Checking if it's been scraped before")
             if not _reviews_scraped(sku):
-                print "==========================================Debug 10"
                 logger.info(sku + " has not been scraped. Adding to the queue...")
                 sc_helper.add_to_queue(source, sku, page_count)
-        print "==========================================Debug 11"
         # If it's in the queue, scrape it 
         if _is_in_queue(sku):
-            print "==========================================Debug 12"
             logger.info(sku + " is in the queue. Launching the scraper")
             sc_helper.scrape(sku, prod_name, source)
         
-        print "==========================================Debug 13"
         # If it hasn't been trained, train it
         if not _is_trained(sku):
-            print "==========================================Debug 14"
             _nlp_reset(sku)
             logger.info("Starting NLP preprocessing")
             _set_status("Analyzing language", sku)
             preprocess.NLPreprocessor(sku).tokenize()
             logger.info("Finished NLP preprocessing")
-            print "==========================================Debug 15"
             logger.info("Starting model trianing")
             _set_status("Building knowledge base", sku)
             d2v = training.Document2Vector(sku).train()
             logger.info("Finished model training")
             _update_details_db(sku)
             _set_status("Ready", sku)
-            print "==========================================Debug 16"
     except Exception as e:
-        print "==========================================Debug 17"
         logger.exception(e)
         _set_status(__error__, sku)
-    print "==========================================Debug 18"
 
 
 def start(url, progress=False):
@@ -410,15 +371,10 @@ def start(url, progress=False):
     and continue with the data processing. That way, the sku status can be updated
     at the appropriate time and everyone is happy :). 
     """
-    print "==========MAIN START IS SLEEPING============"
-    # time.sleep(30)
-    print "==========================================Debug A"
     logger.info("Received new url to process: {}".format(url))
     decoded = _decode_url(url)
     if not decoded: return {}
-    print "==========================================Debug B"
     if progress:
-        print "==========================================Debug C"
         sku = decoded[1]
         __in_progress__ = True
         status = get_status(sku)
@@ -429,10 +385,6 @@ def start(url, progress=False):
                     "in_progress": __in_progress__,
                 }
         response.update(status)
-        print "==========================================Debug D"
         return response
     else:
         _workflof(decoded, url) # Enable when debugging
-        #executor = ThreadPoolExecutor(max_workers=1)
-        #executor.submit(_threaded, decoded, url)
-        #executor.shutdown(wait=False)
