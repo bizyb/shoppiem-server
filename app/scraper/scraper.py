@@ -84,11 +84,8 @@ class Scraper(object):
                     t = self._get_duration()
                     logger.info('Throttling by {} second/s'.format(t))
                     time.sleep(t)
-                print "==========================================Debug SCRAPER 1"
-                print "==========================================Debug SCRAPER params: ", params, proxies
-                # response = requests.get(url, proxies=proxies, **params)
-                print "==========================================Debug SCRAPER 2"
-                response = requests.get(url, **params) # Enable when debugging
+                response = requests.get(url, proxies=proxies, **params)
+                #response = requests.get(url, **params) # Enable when debugging
                 msg = 'New response: status_code={} url={}'
                 logger.info(msg.format(response.status_code, response.url))
             except Exception as e:
