@@ -36,8 +36,10 @@ def _db_product_details(sku):
     """
     Return product details from the database.
     """
+    print "==========================================Debug 20"
     db_details = DB.init_db(config.get("details_db")).product_details
     product = list(db_details.find({"sku": sku}))
+    print "==========================================Debug 21"
     if product:
         product_name = product[0].get("product_name")
         product_url = product[0].get("url")
@@ -46,14 +48,17 @@ def _db_product_details(sku):
         page_count =  product[0].get("review_page_count")
         valid = all([product_name, product_url, image_url, review_count, page_count])
         if valid:
+            print "==========================================Debug 22"
             return {
                     "product_name": product_name,
                     "review_count": review_count,
                     "page_count": page_count,
             }
         else:
+            print "==========================================Debug 23"
             logger.info("Unable to validate product details for {}. Deleting entry".format(sku)) 
             db_details.delete_one({"sku": sku})
+    print "==========================================Debug 24"
     return {}
 
 
@@ -66,9 +71,12 @@ def _detail_parsed(sku):
     :param sku: product sku
     :return: whether or not the product detail page has been parsed
     """
+    print "==========================================Debug 25"
     if _db_product_details(sku):
+        print "==========================================Debug 26"
         logger.info("Product detail page for {} has already been parsed".format(sku))
         return True
+    print "==========================================Debug 27"
     logger.info("Product detail page for {} is yet to be downloaded and parsed".format(sku))
     return False 
 
@@ -79,11 +87,14 @@ def _is_in_queue(sku):
     :param sku: product sku
     :return: whether or not there are review urls in queue
     """
+    print "==========================================Debug 28"
     db_q = DB.init_db(config.get("queue_db")).queue
     queue = list(db_q.find({"sku": sku}))
+    print "==========================================Debug 29"
     if len(queue) > 0: 
         logger.info(sku + " is already in the queue")
         return True 
+    print "==========================================Debug 30"
     return False
 
 def _reviews_scraped(sku):
@@ -93,9 +104,10 @@ def _reviews_scraped(sku):
     :param sku: product sku
     :return: whether or not the reviews have been scraped+parsed+ingested
     """
-
+    print "==========================================Debug 32"
     db_raw = DB.init_db(config.get("ingestion_db")).raw 
     feed = list(db_raw.find({"sku": sku}))
+    print "==========================================Debug 32"
     if len(feed) > 0:
         logger.info(sku + " reviews have been parsed and ingested")
         return True
@@ -108,9 +120,11 @@ def _nlp_reset(sku):
 
     :param sku: product sku
     """ 
+    print "==========================================Debug 33"
     db_sents = DB.init_db(config.get("sent_db")).sentences
     db_sents.delete_many({"sku": sku})
     logger.info("Cleared sentence table for " + sku)
+    print "==========================================Debug 34"
     
      
 
@@ -122,13 +136,16 @@ def _is_trained(sku):
     :param sku: product sku
     :return: whether or not there is a doc2vec model
     """
+    print "==========================================Debug 35"
     #TODO: Always best to retrain with more data so if there are new raw reviews, retrain
     mypath = config.get("doc2vec").get("path")
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     if sku in onlyfiles:
+        print "==========================================Debug 36"
         _set_status(__ready__, sku)
         logger.info(sku + " has a trained model")
         return True 
+    print "==========================================Debug 37"
     logger.info(sku + " does not have a trained model. Start training")
     return False 
 
@@ -195,7 +212,8 @@ def get_status(sku):
     except IndexError:
         # this happens due to a race condition because the sku hasn't been
         # added to the database yet
-        logger.warning("Product status not yet available")
+        # logger.warning("Product status not yet available")
+        pass
     return {}
         
     
@@ -396,10 +414,10 @@ def start(url):
     decoded = _decode_url(url)
     if not decoded: return {}
     print "==========================================Debug B"
-    # _threaded(decoded, url) # Enable when debugging
-    executor = ThreadPoolExecutor(max_workers=10)
-    executor.submit(_threaded, decoded, url)
-    executor.shutdown(wait=False)
+    _threaded(decoded, url) # Enable when debugging
+    #executor = ThreadPoolExecutor(max_workers=1)
+    #executor.submit(_threaded, decoded, url)
+    #executor.shutdown(wait=False)
     print "==========================================Debug C"
     sku = decoded[1]
     __in_progress__ = True
