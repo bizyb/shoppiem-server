@@ -1,6 +1,6 @@
 import time
 import db as DB
-from ml import training, inference
+from ml import training, inference, qna_classifier
 from nlp import preprocess
 from os import listdir
 from os.path import isfile, join
@@ -157,20 +157,25 @@ def _decode_url(url):
     except Exception:
         return 
 
-def vote_to_db(question, answer, sku, vote):
+def vote_to_db(question, answer, sku, up_count, down_count):
     """
     Save user voting on question-answer pair to the database.
-    TODO: Make sure we only save the last vote the user gives for any given question/answer pair
-    TODO: That means managing the session. Otherwise, we could artifically bias or votes.
+    Saving every question-answer combination as a unique pair would 
+    result in many duplicate entries in the database. Please refer to 
+    the comments to the question/answer pair classifier for more details
+    on how deal with this problem.
     """
     db_votes = DB.init_db(config.get("votes_db")).votes 
     record = {
         "question": question,
         "answer": answer,
         "sku": sku,
-        "vote": vote
+        "up_count": up_count,
+        "down_count": down_count
     }
-    db_votes.insert_one(record)
+    classifier = qna_classifier.Classify(record)
+    classifier.put_votes(db_votes)
+    logger.info("Received new voting data for {} and question: {}".format(sku, question))
 
 def get_status(sku):
     res = None
@@ -250,11 +255,15 @@ def get_answer(question, sku):
     Open a websocket and keep the connection alive for the duration 
     of the session so that the sku model is loaded only once. 
     """
+    db_votes = DB.init_db(config.get("votes_db")).votes
     inf = inference.Inference(sku)
     answer, confidence = inf.infer(question)
+    classifier = qna_classifier.Classify({"question": question, "answer": answer, "sku": sku})
+    votes = classifier.get_votes(db_votes)
     response = {"confidence": confidence,
                 "answer": answer,
             }
+    response.update(votes)
     return response
 
 def get_most_recent():
@@ -293,7 +302,7 @@ def _update_details_db(sku):
     db_details.update_one({"sku": sku}, {"$set": record})
 
 
-def _workflof(decoded, url):
+def _workflow(decoded, url):
     """
     Run the whole data scraping, processing, and analysis in new threads.
     Each thread, beginning with this one, will make its calls in a try-except
@@ -391,4 +400,4 @@ def start(url, progress=False):
         response.update(status)
         return response
     else:
-        _workflof(decoded, url) # Enable when debugging
+        _workflow(decoded, url) # Enable when debugging
