@@ -145,6 +145,10 @@ def _decode_url(url):
     if not tokens: 
         tokens = re.findall("/dp/\w{10}", url)
         suffix = "dp"
+    if not tokens:
+        # handle mobile URLs 
+        tokens = re.findall("/gp/aw/d/\w{10}", url)
+        suffix = "dp" # are we sure about this? 
     if not tokens: return 
     try:
         sku = tokens[0].split("/")[-1]
