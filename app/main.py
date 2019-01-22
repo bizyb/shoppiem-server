@@ -1,6 +1,6 @@
 import time
 import db as DB
-from ml import training, inference, qna_classifier
+from ml import training, inference, qna_clustering
 from nlp import preprocess
 from os import listdir
 from os.path import isfile, join
@@ -165,7 +165,7 @@ def vote_to_db(question, answer, sku, up_count, down_count):
     the comments to the question/answer pair classifier for more details
     on how deal with this problem.
     """
-    db_votes = DB.init_db(config.get("votes_db")).votes 
+    db_votes = DB.init_db(config.get("votes_db")) 
     record = {
         "question": question,
         "answer": answer,
@@ -173,8 +173,8 @@ def vote_to_db(question, answer, sku, up_count, down_count):
         "up_count": up_count,
         "down_count": down_count
     }
-    classifier = qna_classifier.Classify(record)
-    classifier.put_votes(db_votes)
+    cluster = qna_clustering.Cluster(record)
+    cluster.put_votes(db_votes)
     logger.info("Received new voting data for {} and question: {}".format(sku, question))
 
 def get_status(sku):
@@ -255,11 +255,11 @@ def get_answer(question, sku):
     Open a websocket and keep the connection alive for the duration 
     of the session so that the sku model is loaded only once. 
     """
-    db_votes = DB.init_db(config.get("votes_db")).votes
+    db_votes = DB.init_db(config.get("votes_db"))
     inf = inference.Inference(sku)
     answer, confidence = inf.infer(question)
-    classifier = qna_classifier.Classify({"question": question, "answer": answer, "sku": sku})
-    votes = classifier.get_votes(db_votes)
+    cluster = qna_clustering.Cluster({"question": question, "answer": answer, "sku": sku})
+    votes = cluster.get_votes(db_votes)
     response = {"confidence": confidence,
                 "answer": answer,
             }
