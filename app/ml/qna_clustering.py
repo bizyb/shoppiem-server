@@ -61,10 +61,10 @@ class Cluster(object):
         If there are any votes for the current query, return the up_vote
         and down_vote count on file. Otherwise, return 0 for both.
         """
-        result = {"up_vote": 0, "down_vote": 0}
+        result = {"up_votes": 0, "down_votes": 0}
         entry = list(db.votes.find(self.query))
         if len(entry) == 0: return result 
         return {
-            "up_vote": entry[0].get("up_vote"),
-            "down_vote": entry[0].get("down_vote")
+            "up_votes": entry[0].get("up_count"),
+            "down_votes": entry[0].get("down_count")
         }

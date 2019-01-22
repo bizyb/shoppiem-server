@@ -73,8 +73,8 @@ def vote():
     question = request.args.get("q")
     answer = request.args.get("a")
     sku = request.args.get("sku")
-    up_count = request.args.get("u")
-    down_count = request.args.get("d")
+    up_count = int(request.args.get("u"))
+    down_count = int(request.args.get("d"))
     main.vote_to_db(question, answer, sku, up_count, down_count)
     return jsonify({"status": "vote received"})
 
