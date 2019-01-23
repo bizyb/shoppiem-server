@@ -255,15 +255,21 @@ def get_answer(question, sku):
     Open a websocket and keep the connection alive for the duration 
     of the session so that the sku model is loaded only once. 
     """
-    db_votes = DB.init_db(config.get("votes_db"))
-    inf = inference.Inference(sku)
-    answer, confidence = inf.infer(question)
-    cluster = qna_clustering.Cluster({"question": question, "answer": answer, "sku": sku})
-    votes = cluster.get_votes(db_votes)
-    response = {"confidence": confidence,
-                "answer": answer,
-            }
-    response.update(votes)
+    response = {"status": __error__}
+    try:
+        db_votes = DB.init_db(config.get("votes_db"))
+        inf = inference.Inference(sku)
+        answer, confidence = inf.infer(question)
+        cluster = qna_clustering.Cluster({"question": question, "answer": answer, "sku": sku})
+        votes = cluster.get_votes(db_votes)
+        response = {"confidence": confidence,
+                    "answer": answer,
+                    "status": "OK",
+                }
+        response.update(votes)
+    except Exception as e:
+        msg = '{}'.format(type(e).__name__, e.args[0])
+        logger.exception(msg)
     return response
 
 def get_most_recent():
