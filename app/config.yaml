@@ -1,8 +1,8 @@
 #-------------------------------------------------
 # Database  Settings
 #-------------------------------------------------
-host: localhost
-# host: "mongodb"
+#host: localhost
+host: "mongodb"
 port: 27017
 sent_db: test_sentencedb
 ingestion_db: test_rawfeeddb
