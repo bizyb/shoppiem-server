@@ -178,7 +178,7 @@ def vote_to_db(question, answer, sku, up_count, down_count):
     logger.info("Received new voting data for {} and question: {}".format(sku, question))
 
 def get_status(sku):
-    res = None
+    response = {"status": __error__}
     try:
         msg = list(db_status.find({"sku": sku}))[0]
         msg = msg.get("msg")
@@ -202,8 +202,7 @@ def get_status(sku):
         # this happens due to a race condition because the sku hasn't been
         # added to the database yet
         logger.warning("Product status not yet available")
-        # pass
-    return {}
+    return response
         
     
 def _set_status(msg, sku):
