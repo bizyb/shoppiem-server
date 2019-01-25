@@ -17,6 +17,7 @@ with open('config.yaml') as f:
 
 db_status = DB.init_db(config.get("status_db")).job_status
 __error__ = config.get("misc").get("error_msg")
+__in_queue__ = config.get("misc").get("in_queue_msg")
 __ready__ = "Ready"
 
 """******************************************************************************
@@ -178,7 +179,7 @@ def vote_to_db(question, answer, sku, up_count, down_count):
     logger.info("Received new voting data for {} and question: {}".format(sku, question))
 
 def get_status(sku):
-    response = {"status": __error__}
+    response = {"status": __in_queue__}
     try:
         msg = list(db_status.find({"sku": sku}))[0]
         msg = msg.get("msg")
@@ -198,12 +199,15 @@ def get_status(sku):
             "image_url": image_url,
             "sku": sku,
         }
-    except Exception:
+    except IndexError:
         # this happens due to a race condition because the sku hasn't been
         # added to the database yet or because it simply doesn't exist. The
         # second case only true if the URL has been typed in manually or 
         # bookmarked but the sku is missing from the URL. 
         logger.warning("Product status not yet available")
+    except Exception as e:
+        logger.exception(e)
+        response = {"status": __error__}
     return response
         
     
