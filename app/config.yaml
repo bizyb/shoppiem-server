@@ -61,6 +61,6 @@ scraper:
 misc:
   min_review_count: 10
   error_msg: "Unknown Error"
-  in_queue_msg: "In queue. Waiting to be picked up."
+  in_queue_msg: "Waiting to be picked up"
   max_title_length: 90
 

@@ -31,12 +31,14 @@ class Cluster(object):
     """
     def __init__(self, record):
         self.record = record
+        self.record["question"] = record.get("question").replace("\n", " ")
+        self.record["answer"] = record.get("answer").replace("\n", " ")
         self.query = {
             "sku": self.record.get("sku"),
             "question": self.record.get("question"),
-            "answer": self.record.get("answer")
+            "answer": self.record.get("answer"),
         }
-  
+    
     def put_votes(self, db):
         """
         If no question-answer pair exists for a given sku, use it as a baseline
@@ -44,7 +46,6 @@ class Cluster(object):
         pair of question and answer using its sku as a tag. Save the votes with the
         cluster tag, not with the question and answer. 
         """
-        
         entry = list(db.votes.find(self.query))
         if len(entry) == 0:
             db.votes.insert_one(self.record)
@@ -55,6 +56,7 @@ class Cluster(object):
                                 "down_count": self.record.get("down_count")
                                 }
                             })
+            logger.info("Updated an existing vote")
     
     def get_votes(self, db):
         """

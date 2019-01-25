@@ -176,7 +176,7 @@ def vote_to_db(question, answer, sku, up_count, down_count):
     }
     cluster = qna_clustering.Cluster(record)
     cluster.put_votes(db_votes)
-    logger.info("Received new voting data for {} and question: {}".format(sku, question))
+    logger.info(record)
 
 def get_status(sku):
     response = {"status": __in_queue__}
@@ -335,7 +335,6 @@ def _workflow(decoded, url):
     sku = decoded[1]
     url = decoded[2]
     parsed = _db_product_details(sku)
-    _set_status("Gathering data", sku)
     try:
         # Has the detail page been parsed?
         if not parsed:
@@ -348,6 +347,8 @@ def _workflow(decoded, url):
                 return 
         else:
             logger.info("Detail page for {} already parsed. Skipping download...".format(sku))
+            
+        _set_status("Gathering data", sku)
         prod_name = parsed.get("product_name")
         review_count = parsed.get("review_count")
         page_count = parsed.get("page_count")
