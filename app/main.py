@@ -1,5 +1,6 @@
 import time
 import db as DB
+from concurrent.futures import ThreadPoolExecutor
 from ml import training, inference, qna_clustering
 from nlp import preprocess
 from os import listdir
@@ -412,4 +413,7 @@ def start(url, progress=False):
         response.update(status)
         return response
     else:
-        _workflow(decoded, url) # Enable when debugging
+        executor = ThreadPoolExecutor(max_workers=1)
+        executor.submit(_workflow, decoded, url)
+        executor.shutdown(wait=False)
+        # _workflow(decoded, url) # Enable when debugging
