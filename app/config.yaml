@@ -59,7 +59,7 @@ scraper:
     https: http://5.79.73.131:13010 
 
 misc:
-  min_review_count: 20
+  min_review_count: 10
   error_msg: "Unknown Error"
   max_title_length: 90
 

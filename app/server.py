@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import abort, Flask, request, jsonify
 from flask_cors import CORS
 import main
 app = Flask(__name__)
@@ -54,6 +54,20 @@ def status():
     if not sku: sku = request.args.get('sku')
     response = main.get_status(sku)
     return jsonify(response)
+
+@app.route("/get_details")
+def get_details():
+    """
+    Return product details when a URL with an SKU is entered manually,
+    as opposed to being redirected from somewhere, which would redirect
+    with all the necessary product details to set the state.
+    """
+    url = request.args.get("url")
+    sku = url.split("/")[-1]
+    response = main.get_status(sku)
+    if response.get("product_name") == None:
+        abort(404)
+    else: return jsonify(response) 
 
 @app.route("/question")
 def question():
