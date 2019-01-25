@@ -49,8 +49,8 @@ doc2vec:
 scraper:
   thread_count: 6
   http_timeout: 3
-  sleep_max: 5
-  sleep_min: 2
+  sleep_max: 10
+  sleep_min: 5
   http_codes:
     success: 200
     fail: 0
