@@ -84,6 +84,8 @@ class Scraper(object):
                     t = self._get_duration()
                     logger.info('Throttling by {} second/s'.format(t))
                     time.sleep(t)
+                time.sleep(15)
+                return None
                 response = requests.get(url, proxies=proxies, **params)
                 # response = requests.get(url, **params) # Enable when debugging
                 msg = 'New response: status_code={} url={}'

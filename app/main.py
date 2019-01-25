@@ -411,9 +411,11 @@ def start(url, progress=False):
                     "in_progress": __in_progress__,
                 }
         response.update(status)
+        logger.info("About to return from progress request...")
+        logger.info(response)
         return response
     else:
-        executor = ThreadPoolExecutor(max_workers=1)
-        executor.submit(_workflow, decoded, url)
-        executor.shutdown(wait=False)
-        # _workflow(decoded, url) # Enable when debugging
+        #executor = ThreadPoolExecutor(max_workers=1)
+        #executor.submit(_workflow, decoded, url)
+        #executor.shutdown(wait=False)
+        _workflow(decoded, url) # Enable when debugging
