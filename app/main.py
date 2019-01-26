@@ -183,19 +183,18 @@ def get_status(sku):
     response = {"status": __in_queue__}
     status = None
     try:
-        msg = list(db_status.find({"sku": sku}))[0]
-        msg = msg.get("msg")
-        status = msg
+        status = list(db_status.find({"sku": sku}))[0]
+        status = msg.get("msg")
         db_details = DB.init_db(config.get("details_db")).product_details
         product = list(db_details.find({"sku": sku}))
-        product_url, product_name, image_url, sku = "", "", "", ""
+        product_url, product_name, image_url = "", "", ""
         if product: 
             product_name = product[0].get("product_name")
             product_url = product[0].get("url")
             image_url = product[0].get("img")
         logger.info("Status for {} is {}".format(sku, msg))
         return {
-            "status": msg,
+            "status": status,
             "product_name": product_name,
             "product_url": product_url,
             "image_url": image_url,
@@ -206,6 +205,7 @@ def get_status(sku):
         # second case only true if the URL has been typed in manually or 
         # bookmarked but the sku is missing from the URL. 
         logger.warning("Product status not yet available for sku {}".format(sku))
+        _set_status(__in_queue__, sku)
         response = {"status": status}
     except Exception as e:
         logger.exception(e)
