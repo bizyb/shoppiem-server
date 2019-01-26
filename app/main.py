@@ -336,6 +336,7 @@ def _workflow(decoded, url):
     source = decoded[0]
     sku = decoded[1]
     url = decoded[2]
+    _set_status(__in_queue__, sku)
     parsed = _db_product_details(sku)
     try:
         # Has the detail page been parsed?
