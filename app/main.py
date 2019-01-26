@@ -184,7 +184,7 @@ def get_status(sku):
     status = None
     try:
         status = list(db_status.find({"sku": sku}))[0]
-        status = msg.get("msg")
+        status = status.get("msg")
         db_details = DB.init_db(config.get("details_db")).product_details
         product = list(db_details.find({"sku": sku}))
         product_url, product_name, image_url = "", "", ""
@@ -192,7 +192,7 @@ def get_status(sku):
             product_name = product[0].get("product_name")
             product_url = product[0].get("url")
             image_url = product[0].get("img")
-        logger.info("Status for {} is {}".format(sku, msg))
+        logger.info("Status for {}: {}".format(sku, status))
         return {
             "status": status,
             "product_name": product_name,
@@ -399,7 +399,6 @@ def start(url, progress=False):
     at the appropriate time and everyone is happy :). 
     """
     logger.info("Received new url to process: {}".format(url))
-    logger.info("New url request is for progress check: " + str(progress))
     decoded = _decode_url(url)
     if not decoded: return {}
     if progress:
@@ -413,8 +412,6 @@ def start(url, progress=False):
                     "in_progress": __in_progress__,
                 }
         response.update(status)
-        logger.info("About to return from progress request...")
-        logger.info(response)
         return response
     else:
         executor = ThreadPoolExecutor(max_workers=1)
