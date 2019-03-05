@@ -10,9 +10,14 @@ def parse_json(path):
     
     j = json.loads(jsonString)
     flat_lists = []
+    #77 87 00"
     for nested_dict in j:
         temp_dict = {}
-        temp_dict["color"] = nested_dict["color"]
+        color = nested_dict["color"]
+        temp_dict["color"] = color
+        temp_dict["r"] = int("0x" + color[1:3], 0)/255.0
+        temp_dict["g"] = int("0x" + color[2:4], 0)/255.0 
+        temp_dict["b"] = int("0x" + color[5:], 0)/255.0 
         temp_dict["x"] = nested_dict["data"][0]["x"]
         temp_dict["y"] = nested_dict["data"][0]["y"]
         temp_dict["z"] = nested_dict["data"][0]["z"]
