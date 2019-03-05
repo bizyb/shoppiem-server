@@ -181,31 +181,32 @@ def vote_to_db(question, answer, sku, up_count, down_count):
 
 def get_status(sku):
     response = {"status": __in_queue__}
+    status = None
     try:
-        msg = list(db_status.find({"sku": sku}))[0]
-        msg = msg.get("msg")
+        status = list(db_status.find({"sku": sku}))[0]
+        status = status.get("msg")
         db_details = DB.init_db(config.get("details_db")).product_details
         product = list(db_details.find({"sku": sku}))
-        product_url, product_name, image_url, sku = "", "", "", ""
+        product_url, product_name, image_url = "", "", ""
         if product: 
             product_name = product[0].get("product_name")
             product_url = product[0].get("url")
             image_url = product[0].get("img")
-            sku = product[0].get("sku")
-        logger.info("Status for {} is {}".format(sku, msg))
+        logger.info("Status for {}: {}".format(sku, status))
         return {
-            "status": msg,
+            "status": status,
             "product_name": product_name,
             "product_url": product_url,
             "image_url": image_url,
-            "sku": sku,
         }
     except IndexError:
         # this happens due to a race condition because the sku hasn't been
         # added to the database yet or because it simply doesn't exist. The
         # second case only true if the URL has been typed in manually or 
         # bookmarked but the sku is missing from the URL. 
-        logger.warning("Product status not yet available")
+        logger.warning("Product status not yet available for sku {}".format(sku))
+        _set_status(__in_queue__, sku)
+        response = {"status": status}
     except Exception as e:
         logger.exception(e)
         response = {"status": __error__}
@@ -335,6 +336,7 @@ def _workflow(decoded, url):
     source = decoded[0]
     sku = decoded[1]
     url = decoded[2]
+    _set_status(__in_queue__, sku)
     parsed = _db_product_details(sku)
     try:
         # Has the detail page been parsed?
@@ -416,4 +418,4 @@ def start(url, progress=False):
         executor = ThreadPoolExecutor(max_workers=1)
         executor.submit(_workflow, decoded, url)
         executor.shutdown(wait=False)
-        # _workflow(decoded, url) # Enable when debugging
+        #_workflow(decoded, url) # Enable when debugging
